@@ -1,0 +1,89 @@
+# ====================
+# Dependencies
+# ====================
+node_modules/
+.pnp
+.pnp.js
+
+# ====================
+# Build output
+# ====================
+dist/
+dist-ssr/
+*.local
+
+# ====================
+# Logs
+# ====================
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ====================
+# Environment files (contain secrets)
+# ====================
+.env
+.env.local
+.env.*.local
+
+# ====================
+# Editor directories and files
+# ====================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ====================
+# TypeScript
+# ====================
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ====================
+# Capacitor / Android
+# ====================
+# Android build outputs are already covered by android/.gitignore
+# But ensure top-level generated files are ignored
+*.apk
+*.aab
+*.hprof
+
+# ====================
+# OS files
+# ====================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ====================
+# IDE / Project specific
+# ====================
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# ====================
+# Misc
+# ====================
+*.bak
+*.orig
+*.tmp
+.eslintcache

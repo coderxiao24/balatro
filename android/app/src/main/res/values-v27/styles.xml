@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <!-- 状态栏透明 -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <!-- 导航栏透明 -->
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <!-- 允许内容绘制到刘海/摄像头区域 -->
+        <item name="android:windowLayoutInDisplayCutoutMode">always</item>
+    </style>
+</resources>
