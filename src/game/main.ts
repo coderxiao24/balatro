@@ -4,13 +4,13 @@ import { Game as MainGame } from "./scenes/Game";
 import { MainMenu } from "./scenes/MainMenu";
 import { AUTO, Game, Scale } from "phaser";
 import { Preloader } from "./scenes/Preloader";
+import { Splash } from "./scenes/Splash";
 
 //  Find out more information about the Game Config at:
 //  https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
 const config: Phaser.Types.Core.GameConfig = {
     type: AUTO,
-    backgroundColor: "#000",
-    scene: [Boot, Preloader, MainMenu, MainGame, GameOver],
+    scene: [Boot, Preloader, Splash, MainMenu, MainGame, GameOver],
     scale: {
         mode: Scale.RESIZE, // 画布尺寸随容器变化，自适应填满屏幕
         autoCenter: Scale.CENTER_BOTH,

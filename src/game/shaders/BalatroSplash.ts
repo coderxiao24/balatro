@@ -1,4 +1,3 @@
-import splashFrag from "./splash_phaser.fs?raw";
 import * as Phaser from "phaser";
 
 export interface BalatroSplashConfig {
@@ -30,10 +29,13 @@ export class BalatroSplash extends Phaser.GameObjects.Shader {
         height: number,
         config?: BalatroSplashConfig,
     ) {
+        // 从缓存获取 shader 源码（由 Preloader 加载）
+        const fragSource = scene.cache.text.get("splashFrag");
+
         // 构建着色器配置
         const shaderConfig: Phaser.Types.GameObjects.Shader.ShaderQuadConfig = {
             name: "BalatroSplash",
-            fragmentSource: splashFrag,
+            fragmentSource: fragSource,
             setupUniforms: (setUniform: (name: string, value: any) => void) => {
                 setUniform("uTime", this._time);
                 setUniform("uVortSpeed", this._vortSpeed);

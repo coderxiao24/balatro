@@ -5,8 +5,6 @@ body {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background-color: #000000;
-    /* 防止下拉状态栏时页面被挤压 */
     position: fixed;
     top: 0;
     left: 0;
