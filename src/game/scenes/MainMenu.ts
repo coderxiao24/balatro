@@ -2,11 +2,14 @@ import { GameObjects, Scene } from "phaser";
 
 import { EventBus } from "../EventBus";
 import { BalatroSplash } from "../shaders/BalatroSplash";
+import { recalcTileSize } from "../Constants";
+import { ClickMode, PlayingCard } from "../data/PlayingCard";
+import { CardValue, Suit } from "../data/types/card";
 
 export class MainMenu extends Scene {
     background: GameObjects.Image;
     logo: GameObjects.Image;
-    title: GameObjects.Text;
+
     logoTween: Phaser.Tweens.Tween | null;
     bgShader: BalatroSplash;
 
@@ -29,21 +32,32 @@ export class MainMenu extends Scene {
                 vortSpeed: 0.4,
                 midFlash: 0.0,
                 vortOffset: 0.0,
+                time: 12,
             },
         );
         this.add.existing(this.bgShader);
 
-        this.title = this.add
-            .text(width / 2, height / 2, __APP_ENV__.VITE_APP_TITLE)
-            .setOrigin(0.5);
-        this.add
-            .text(
-                this.title.x,
-                this.title.y + this.title.height,
-                __APP_ENV__.VITE_APP_TITLE,
-            )
-            .setOrigin(0.5);
+        this.logo = this.add.image(
+            width / 2,
+            height / 2 - recalcTileSize(width, height),
+            "balatro",
+        );
+
+        const A = new PlayingCard(Suit.Spades, CardValue.Ace);
+        A.addToScene(
+            this,
+            width / 2,
+            height / 2 - recalcTileSize(width, height),
+            ClickMode.flip,
+        );
+        console.log(666, A);
         EventBus.emit("current-scene-ready", this);
+
+        this.sound.play("music1", {
+            volume: 0.6,
+            rate: 0.7,
+            loop: true,
+        });
     }
 
     update(time: number, delta: number): void {

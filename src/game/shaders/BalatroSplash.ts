@@ -1,6 +1,7 @@
 import * as Phaser from "phaser";
 
 export interface BalatroSplashConfig {
+    time?: number;
     /** 主色 [r, g, b, a] 0-1 (默认红色) */
     colour1?: number[];
     /** 辅色 [r, g, b, a] 0-1 (默认蓝色) */
@@ -56,6 +57,7 @@ export class BalatroSplash extends Phaser.GameObjects.Shader {
 
         // 应用配置
         if (config) {
+            if (config.time) this._time = config.time;
             if (config.colour1) this._colour1 = config.colour1;
             if (config.colour2) this._colour2 = config.colour2;
             if (config.vortSpeed !== undefined)

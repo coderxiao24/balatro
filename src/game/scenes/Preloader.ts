@@ -2,36 +2,22 @@ import { Scene } from "phaser";
 
 export class Preloader extends Scene {
     private progressBar!: Phaser.GameObjects.Graphics;
-    private progressValue = 0;
-    private loadingSteps: { progress: number; label: string }[] = [];
-    private currentStepIndex = 0;
-    private stepTimer = 0;
-    private readonly STEP_INTERVAL = 400;
 
     constructor() {
         super("Preloader");
     }
 
-    init() {
-        this.loadingSteps = [
-            { progress: 0.1, label: "Loading shaders..." },
-            { progress: 0.2, label: "Loading shaders..." },
-            { progress: 0.22, label: "Loading shaders..." },
-            { progress: 0.4, label: "Loading textures..." },
-            { progress: 0.7, label: "Loading assets..." },
-            { progress: 0.8, label: "Loading assets..." },
-            { progress: 0.9, label: "Finalizing..." },
-            { progress: 0.95, label: "Finalizing..." },
-            { progress: 1.0, label: "Ready!" },
-        ];
-
-        // 进度条
+    preload() {
+        // 初始化进度条
         this.progressBar = this.add.graphics();
         this.drawProgressBar(0);
-    }
 
-    preload() {
-        // 在 preload 中实际加载 shader 源码到缓存
+        // 监听真实加载进度
+        this.load.on("progress", (value: number) => {
+            this.drawProgressBar(value);
+        });
+
+        // 加载 shader 源码到缓存
         this.load.text("splashFrag", "src/game/shaders/splash_phaser.fs");
         this.load.text("flashFrag", "src/game/shaders/flash_phaser.fs");
 
@@ -40,29 +26,32 @@ export class Preloader extends Scene {
             frameWidth: 142,
             frameHeight: 190,
         });
+        this.load.spritesheet(
+            "8BitDeck",
+            "resources/textures/2x/8BitDeck.png",
+            {
+                frameWidth: 142,
+                frameHeight: 190,
+            },
+        );
+        this.load.spritesheet(
+            "Enhancers",
+            "resources/textures/2x/Enhancers.png",
+            {
+                frameWidth: 142,
+                frameHeight: 190,
+            },
+        );
+        this.load.image("balatro", "resources/textures/2x/balatro.png");
+
+        this.load.audio("music1", "resources/sounds/music1.ogg");
+        this.load.audio("whoosh1", "resources/sounds/whoosh1.ogg");
+        this.load.audio("introPad1", "resources/sounds/introPad1.ogg");
     }
 
     create() {
-        this.currentStepIndex = 0;
-        this.stepTimer = 0;
-    }
-
-    update(_time: number, delta: number) {
-        if (this.currentStepIndex >= this.loadingSteps.length) {
-            this.scene.start("Splash");
-            return;
-        }
-
-        this.stepTimer += delta;
-
-        if (this.stepTimer >= this.STEP_INTERVAL) {
-            this.stepTimer = 0;
-            const step = this.loadingSteps[this.currentStepIndex];
-            this.progressValue = step.progress;
-            this.drawProgressBar(this.progressValue);
-
-            this.currentStepIndex++;
-        }
+        // 所有资源加载完成后直接跳转到 Splash 场景
+        this.scene.start("Splash");
     }
 
     private drawProgressBar(progress: number) {

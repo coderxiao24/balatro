@@ -2,14 +2,6 @@ import * as Phaser from "phaser";
 import { BalatroSplash } from "../shaders/BalatroSplash";
 const { Scene } = Phaser;
 
-/**
- * Splash 场景 - 只显示 Joker 卡动画
- *
- * 流程：
- * 1. 创建 splash shader 背景（蓝白漩涡）
- * 2. 0.2秒后：Joker 卡从屏幕底部弹入屏幕中心，带摇摆效果
- * 3. 后续效果暂不实现
- */
 export class Splash extends Scene {
     private bgShader!: BalatroSplash;
     private elapsed = 0;
@@ -17,6 +9,8 @@ export class Splash extends Scene {
 
     private jokerCardEntered = false;
 
+    private introPad1!: Phaser.Sound.BaseSound;
+    private whoosh1!: Phaser.Sound.BaseSound;
     constructor() {
         super("Splash");
     }
@@ -37,13 +31,28 @@ export class Splash extends Scene {
                 vortSpeed: 1.0,
                 midFlash: 0.0,
                 vortOffset: (2 * 90.15315131 * Date.now()) % 100000,
+                time: 2,
             },
         );
         this.add.existing(this.bgShader);
-
+        this.introPad1 = this.sound.add("introPad1", {
+            volume: 0.6,
+            rate: 0.704,
+        });
+        this.whoosh1 = this.sound.add("whoosh1", {
+            volume: 0.2,
+            rate: 0.7,
+        });
         // 重置状态
         this.elapsed = 0;
         this.jokerCardEntered = false;
+
+        // 点击屏幕任意位置直接跳转到主菜单
+        this.input.once("pointerdown", () => {
+            this.whoosh1.stop();
+            this.introPad1.stop();
+            this.scene.start("MainMenu");
+        });
     }
 
     update(_time: number, delta: number) {
@@ -62,6 +71,12 @@ export class Splash extends Scene {
         if (this.jokerCardEntered) {
             this.updateJokerCard(dt);
         }
+
+        if (this.elapsed >= 11) {
+            this.whoosh1.stop();
+            this.introPad1.stop();
+            this.scene.start("MainMenu");
+        }
     }
 
     private showJokerCard() {
@@ -69,6 +84,10 @@ export class Splash extends Scene {
 
         // 创建 Joker 卡（精灵图第一帧）
         this.jokerCard = this.add.image(width / 2, height, "Jokers", 0);
+
+        this.whoosh1.play();
+
+        this.introPad1.play();
 
         // 入场动画：从起始位置弹入到目标位置
         // 使用 Back.easeOut 模拟原游戏的弹性效果
