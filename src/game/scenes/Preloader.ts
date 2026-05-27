@@ -18,8 +18,8 @@ export class Preloader extends Scene {
         });
 
         // 加载 shader 源码到缓存
-        this.load.text("splashFrag", "src/game/shaders/splash_phaser.fs");
-        this.load.text("flashFrag", "src/game/shaders/flash_phaser.fs");
+        this.load.text("splashFrag", "resources/shaders/splash_phaser.fs");
+        this.load.text("flashFrag", "resources/shaders/flash_phaser.fs");
 
         // 加载 Joker 卡精灵图
         this.load.spritesheet("Jokers", "resources/textures/2x/Jokers.png", {
