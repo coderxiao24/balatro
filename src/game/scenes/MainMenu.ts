@@ -2,7 +2,7 @@ import { GameObjects, Scene } from "phaser";
 
 import { EventBus } from "../EventBus";
 import { BalatroSplash } from "../shaders/BalatroSplash";
-import { recalcTileSize } from "../Constants";
+import { calcPx, calcScale } from "../Constants";
 import { ClickMode, PlayingCard } from "../data/PlayingCard";
 import { CardValue, Suit } from "../data/types/card";
 
@@ -42,19 +42,15 @@ export class MainMenu extends Scene {
             this.bgShader.flashIn(2 * 1000);
         }
 
-        this.logo = this.add.image(
-            width / 2,
-            height / 2 - recalcTileSize(width, height),
-            "balatro",
-        );
+        this.logo = this.add.image(width / 2, calcPx(width, 460), "balatro");
 
+        this.logo.setScale(calcScale(width, this.logo.height, 863));
         const A = new PlayingCard(Suit.Spades, CardValue.Ace);
-        A.addToScene(
-            this,
-            width / 2,
-            height / 2 - recalcTileSize(width, height),
-            ClickMode.flip,
-        );
+        A.addToScene(this, width / 2, calcPx(width, 460), ClickMode.flip);
+
+        if (A.container) {
+            A.setScale(calcScale(width, A.container?.width, 240));
+        }
 
         EventBus.emit("current-scene-ready", this);
 

@@ -62,7 +62,7 @@ export class PlayingCard {
     readonly name: string;
     /** 是否正面朝上（可读写，不会带动画，需配合 flip() 或直接更新后用 refreshFace() 同步） */
     faceUp: boolean;
-
+    scale: number = 1;
     /** 添加到场景后的 Container 引用（未添加时为 null） */
     container: Phaser.GameObjects.Container | null = null;
 
@@ -152,12 +152,17 @@ export class PlayingCard {
 
                 this.scene!.tweens.add({
                     targets: this.container,
-                    scaleX: 1,
+                    scaleX: this.scale || 1,
                     duration: 150,
                     ease: "Sine.easeOut",
                 });
             },
         });
+    }
+
+    setScale(value: number): void {
+        this.scale = value;
+        this.container?.setScale(value);
     }
 
     /** 切换选中/取消选中（带动画） */

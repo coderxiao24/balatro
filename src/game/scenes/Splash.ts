@@ -1,13 +1,16 @@
 import * as Phaser from "phaser";
 import { BalatroSplash } from "../shaders/BalatroSplash";
+import { calcScale } from "../Constants";
 const { Scene } = Phaser;
 
 export class Splash extends Scene {
     private bgShader!: BalatroSplash;
     private elapsed = 0;
     private jokerCard!: Phaser.GameObjects.Image;
+    private jokerCardScale!: number;
 
     private jokerCardEntered = false;
+    private jokerCardElapsed = 0;
 
     private introPad1!: Phaser.Sound.BaseSound;
     private whoosh1!: Phaser.Sound.BaseSound;
@@ -15,6 +18,7 @@ export class Splash extends Scene {
 
     private flashTriggered = false;
     private splashBuildupPlayed = false;
+    private jokerCardDissolving = false;
     constructor() {
         super("Splash");
     }
@@ -80,9 +84,9 @@ export class Splash extends Scene {
             this.showJokerCard();
         }
 
-        // 更新 Joker 卡摇摆效果
+        // 更新 Joker 卡摇摆效果（溶解时停止摇摆，让 tween 控制 scale）
         if (this.jokerCardEntered) {
-            this.updateJokerCard();
+            this.updateJokerCard(dt);
         }
 
         // 在 2 秒时播放 splash_buildup 音效
@@ -91,8 +95,23 @@ export class Splash extends Scene {
             this.splashBuildup.play();
         }
 
-        // 在 9 秒时触发圆形扩散闪光（Joker 卡溶解消失）
-        if (!this.flashTriggered && this.elapsed >= 9) {
+        // 在 6 秒时触发 Joker 卡溶解消失
+        if (!this.jokerCardDissolving && this.elapsed >= 9) {
+            this.jokerCardDissolving = true;
+
+            // Joker 卡溶解消失：淡出 + 缩小到 0
+            if (this.jokerCard) {
+                this.tweens.add({
+                    targets: this.jokerCard,
+                    alpha: 0,
+                    duration: 3 * 1000,
+                    ease: "Sine.easeIn",
+                });
+            }
+        }
+
+        // 在 9 秒时触发圆形扩散闪光
+        if (!this.flashTriggered && this.elapsed >= 11) {
             this.flashTriggered = true;
 
             // 触发闪光出场：圆形白光逐渐扩大覆盖全屏
@@ -100,7 +119,7 @@ export class Splash extends Scene {
         }
 
         // 在 11 秒时跳转到主菜单
-        if (this.elapsed >= 11) {
+        if (this.elapsed >= 13) {
             this.whoosh1.stop();
             this.introPad1.stop();
             this.splashBuildup.stop();
@@ -113,6 +132,10 @@ export class Splash extends Scene {
 
         // 创建 Joker 卡（精灵图第一帧）
         this.jokerCard = this.add.image(width / 2, height, "Jokers", 0);
+
+        this.jokerCardScale = calcScale(width, this.jokerCard.width, 220);
+
+        this.jokerCard.setScale(this.jokerCardScale);
 
         this.whoosh1.play();
 
@@ -131,17 +154,18 @@ export class Splash extends Scene {
         });
     }
 
-    // 模拟3d旋转效果
-    private updateJokerCard() {
+    // 模拟3d旋转效果（在初始缩放基础上叠加）
+    private updateJokerCard(dt: number) {
+        this.jokerCardElapsed += dt;
         const speed = 1.2;
-        const t = this.elapsed * speed;
-
+        const t = this.jokerCardElapsed * speed;
         const skewX = Math.sin(t) * 0.08;
-
         const skewY = Math.sin(t + Math.PI * 0.5) * 0.08;
 
-        this.jokerCard.setScale(1 + skewX, 1 + skewY);
-
+        this.jokerCard.setScale(
+            this.jokerCardScale * (1 + skewX),
+            this.jokerCardScale * (1 + skewY),
+        );
         this.jokerCard.setAngle(Math.sin(t * 0.7) * 1.5);
     }
 }
