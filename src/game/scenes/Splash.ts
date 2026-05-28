@@ -160,7 +160,7 @@ export class Splash extends Scene {
         const speed = 1.2;
         const t = this.jokerCardElapsed * speed;
         const skewX = Math.sin(t) * 0.08;
-        const skewY = Math.sin(t + Math.PI * 0.5) * 0.08;
+        const skewY = Math.sin(t + Math.PI) * 0.08;
 
         this.jokerCard.setScale(
             this.jokerCardScale * (1 + skewX),
