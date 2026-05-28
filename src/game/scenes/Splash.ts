@@ -11,6 +11,10 @@ export class Splash extends Scene {
 
     private introPad1!: Phaser.Sound.BaseSound;
     private whoosh1!: Phaser.Sound.BaseSound;
+    private splashBuildup!: Phaser.Sound.BaseSound;
+
+    private flashTriggered = false;
+    private splashBuildupPlayed = false;
     constructor() {
         super("Splash");
     }
@@ -19,6 +23,7 @@ export class Splash extends Scene {
         const { width, height } = this.cameras.main;
 
         // 1. 创建 splash shader 背景（蓝白漩涡，速度=1）
+        // 闪光效果已内置在 splash shader 中，通过 uMidFlash 控制
         this.bgShader = new BalatroSplash(
             this,
             width / 2,
@@ -29,12 +34,13 @@ export class Splash extends Scene {
                 colour1: [0, 0, 1, 1], // 蓝色
                 colour2: [1, 1, 1, 1], // 白色
                 vortSpeed: 1.0,
-                midFlash: 0.0,
-                vortOffset: (2 * 90.15315131 * Date.now()) % 100000,
-                time: 2,
+                midFlash: 0,
+                vortOffset: 0,
+                time: 3,
             },
         );
         this.add.existing(this.bgShader);
+
         this.introPad1 = this.sound.add("introPad1", {
             volume: 0.6,
             rate: 0.704,
@@ -43,15 +49,22 @@ export class Splash extends Scene {
             volume: 0.2,
             rate: 0.7,
         });
+        this.splashBuildup = this.sound.add("splash_buildup", {
+            volume: 0.7,
+            rate: 1,
+        });
+
         // 重置状态
         this.elapsed = 0;
         this.jokerCardEntered = false;
 
-        // 点击屏幕任意位置直接跳转到主菜单
+        // 点击屏幕任意位置直接跳转到主菜单（不做闪光入场）
         this.input.once("pointerdown", () => {
             this.whoosh1.stop();
             this.introPad1.stop();
-            this.scene.start("MainMenu");
+            this.splashBuildup.stop();
+
+            this.scene.start("MainMenu", { skipFlashIn: true });
         });
     }
 
@@ -69,12 +82,28 @@ export class Splash extends Scene {
 
         // 更新 Joker 卡摇摆效果
         if (this.jokerCardEntered) {
-            this.updateJokerCard(dt);
+            this.updateJokerCard();
         }
 
+        // 在 2 秒时播放 splash_buildup 音效
+        if (!this.splashBuildupPlayed && this.elapsed >= 2) {
+            this.splashBuildupPlayed = true;
+            this.splashBuildup.play();
+        }
+
+        // 在 9 秒时触发圆形扩散闪光（Joker 卡溶解消失）
+        if (!this.flashTriggered && this.elapsed >= 9) {
+            this.flashTriggered = true;
+
+            // 触发闪光出场：圆形白光逐渐扩大覆盖全屏
+            this.bgShader.flashOut(2 * 1000);
+        }
+
+        // 在 11 秒时跳转到主菜单
         if (this.elapsed >= 11) {
             this.whoosh1.stop();
             this.introPad1.stop();
+            this.splashBuildup.stop();
             this.scene.start("MainMenu");
         }
     }
@@ -102,41 +131,17 @@ export class Splash extends Scene {
         });
     }
 
-    private updateJokerCard(dt: number) {
-        // 复合轴倾斜效果：左上角靠近人眼（Z轴向前），右下角远离人眼（Z轴向后）
-        //
-        // 由于 Phaser 4 的 Image 没有内置 skew（剪切变换）属性，
-        // 这里使用 setScale 的非对称缩放 + setAngle 旋转来模拟 3D 透视倾斜。
-        //
-        // 真实的 skew 变换矩阵：
-        //   | 1    tan(skewX)  0 |
-        //   | tan(skewY)  1    0 |
-        //   | 0          0    1 |
-        //
-        // 左上角靠近人眼 = skewX 负值（顶部向左偏）+ skewY 正值（右侧向下偏）
-        // 在 2D 中近似为：scaleX 缩小 + scaleY 缩小 + 逆时针旋转
-        //
-        // 使用正弦波让效果来回摆动，产生呼吸感
-
+    // 模拟3d旋转效果
+    private updateJokerCard() {
         const speed = 1.2;
         const t = this.elapsed * speed;
 
-        // 模拟 skewX（水平剪切）：scaleX 周期性变化
-        // skewX 负值（顶部向左偏）≈ scaleX < 1
-        // skewX 正值（顶部向右偏）≈ scaleX > 1
         const skewX = Math.sin(t) * 0.08;
 
-        // 模拟 skewY（垂直剪切）：scaleY 周期性变化
-        // skewY 正值（右侧向下偏）≈ scaleY > 1
-        // skewY 负值（右侧向上偏）≈ scaleY < 1
-        // 相位偏移 π/2 使 skewY 与 skewX 有 90 度相位差，产生复合旋转效果
         const skewY = Math.sin(t + Math.PI * 0.5) * 0.08;
 
-        // 应用非对称缩放模拟 skew
         this.jokerCard.setScale(1 + skewX, 1 + skewY);
 
-        // 添加轻微的旋转，增强立体感
-        // 当左上角凸起时逆时针旋转，右下角凸起时顺时针旋转
         this.jokerCard.setAngle(Math.sin(t * 0.7) * 1.5);
     }
 }

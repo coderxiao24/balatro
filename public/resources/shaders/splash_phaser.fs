@@ -8,6 +8,8 @@ uniform vec4 uColour2;
 uniform float uMidFlash;
 uniform float uVortOffset;
 uniform vec2 uResolution;
+uniform float uFlashRadius;
+uniform float uFlashOpacity;
 varying vec2 outTexCoord;
 
 #define PIXEL_SIZE_FAC 700.0
@@ -54,8 +56,20 @@ void main()
 
     vec4 ret_col = uColour1 * c1p + uColour2 * c2p + vec4(cb * BLACK.rgb, cb * uColour1.a);
 
-    // 白色闪光
+    // 白色闪光（原有逻辑，保持兼容）
     float mod_flash = max(uMidFlash * 0.8, max(c1p, c2p) * 5.0 - 4.4) + uMidFlash * max(c1p, c2p);
 
-    gl_FragColor = ret_col * (1.0 - mod_flash) + mod_flash * vec4(1.0, 1.0, 1.0, 1.0);
+    // 圆形扩散闪光：从中心圆形区域逐渐扩大，白光内部始终保持不透明
+    // uFlashRadius: 0~1.2，表示圆形半径占屏幕对角线一半的比例
+    // uFlashOpacity: 始终为1，白光内部不透明
+    float max_dist = 0.5 * length(love_ScreenSize.xy) / length(love_ScreenSize.xy); // 约0.5
+    float dist_from_center = length(uv);
+    float flash_radius_world = uFlashRadius * max_dist;
+    float in_circle = 1.0 - smoothstep(flash_radius_world * 0.8, flash_radius_world, dist_from_center);
+    float circle_flash = in_circle * uFlashOpacity;
+
+    // 合并两种闪光效果
+    float total_flash = max(mod_flash, circle_flash);
+
+    gl_FragColor = ret_col * (1.0 - total_flash) + total_flash * vec4(1.0, 1.0, 1.0, 1.0);
 }

@@ -12,15 +12,21 @@ export interface BalatroSplashConfig {
     midFlash?: number;
     /** 漩涡偏移量 (默认 0) */
     vortOffset?: number;
+    /** 圆形闪光半径 (0-1) */
+    flashRadius?: number;
+    /** 圆形闪光不透明度 (0-1) */
+    flashOpacity?: number;
 }
 
 export class BalatroSplash extends Phaser.GameObjects.Shader {
     private _time: number = 0;
     private _vortSpeed: number = 0.4;
-    private _colour1: number[] = [1.0, 0.0, 0.0, 1.0]; // 红色
-    private _colour2: number[] = [0.0, 0.0, 1.0, 1.0]; // 蓝色
+    private _colour1: number[] = [1.0, 0.0, 0.0, 1.0];
+    private _colour2: number[] = [0.0, 0.0, 1.0, 1.0];
     private _midFlash: number = 0;
     private _vortOffset: number = 0;
+    private _flashRadius: number = 0;
+    private _flashOpacity: number = 0;
 
     constructor(
         scene: Phaser.Scene,
@@ -30,10 +36,8 @@ export class BalatroSplash extends Phaser.GameObjects.Shader {
         height: number,
         config?: BalatroSplashConfig,
     ) {
-        // 从缓存获取 shader 源码（由 Preloader 加载）
         const fragSource = scene.cache.text.get("splashFrag");
 
-        // 构建着色器配置
         const shaderConfig: Phaser.Types.GameObjects.Shader.ShaderQuadConfig = {
             name: "BalatroSplash",
             fragmentSource: fragSource,
@@ -44,6 +48,8 @@ export class BalatroSplash extends Phaser.GameObjects.Shader {
                 setUniform("uColour2", this._colour2);
                 setUniform("uMidFlash", this._midFlash);
                 setUniform("uVortOffset", this._vortOffset);
+                setUniform("uFlashRadius", this._flashRadius);
+                setUniform("uFlashOpacity", this._flashOpacity);
                 setUniform("uResolution", [
                     scene.scale.width,
                     scene.scale.height,
@@ -55,7 +61,6 @@ export class BalatroSplash extends Phaser.GameObjects.Shader {
 
         this.type = "BalatroSplash";
 
-        // 应用配置
         if (config) {
             if (config.time) this._time = config.time;
             if (config.colour1) this._colour1 = config.colour1;
@@ -65,99 +70,103 @@ export class BalatroSplash extends Phaser.GameObjects.Shader {
             if (config.midFlash !== undefined) this._midFlash = config.midFlash;
             if (config.vortOffset !== undefined)
                 this._vortOffset = config.vortOffset;
+            if (config.flashRadius !== undefined)
+                this._flashRadius = config.flashRadius;
+            if (config.flashOpacity !== undefined)
+                this._flashOpacity = config.flashOpacity;
         }
 
-        // 监听窗口大小变化
         scene.scale.on("resize", this._onResize, this);
     }
 
     /**
-     * 设置颜色
+     * 闪光出场：屏幕中间的圆形白光逐渐扩大覆盖全屏，白光内部始终保持不透明
+     * 扩散先慢后快（easeInCubic）
+     * @param duration 持续时间（毫秒）
      */
-    setColours(colour1?: number[], colour2?: number[]): this {
-        if (colour1) this._colour1 = colour1;
-        if (colour2) this._colour2 = colour2;
-        return this;
-    }
-
-    /**
-     * 设置漩涡速度
-     */
-    setVortSpeed(speed: number): this {
-        this._vortSpeed = speed;
-        return this;
-    }
-
-    /**
-     * 设置白色闪光强度 (0-1)
-     */
-    setMidFlash(flash: number): this {
-        this._midFlash = flash;
-        return this;
-    }
-
-    /**
-     * 设置漩涡偏移量
-     */
-    setVortOffset(offset: number): this {
-        this._vortOffset = offset;
-        return this;
-    }
-
-    /**
-     * 缓动白色闪光到目标值
-     */
-    easeMidFlash(target: number, duration: number = 4000): void {
-        const start = this._midFlash;
+    flashOut(duration: number = 2000): void {
         const startTime = this._time;
         const endTime = startTime + duration / 1000;
 
-        // 在 update 中处理缓动
-        this._flashEase = { start, target, startTime, endTime };
+        this._flashRadius = 0;
+        this._flashOpacity = 1;
+
+        this._flashOutEase = { startTime, endTime };
     }
 
-    private _flashEase: {
-        start: number;
-        target: number;
+    /**
+     * 闪光进场：白光覆盖全屏完全不透明，逐渐透明度变成0
+     * 变化先慢后快（easeInCubic）
+     * @param duration 持续时间（毫秒）
+     */
+    flashIn(duration: number = 2000): void {
+        const startTime = this._time;
+        const endTime = startTime + duration / 1000;
+
+        this._flashRadius = 1.2;
+        this._flashOpacity = 1;
+
+        this._flashInEase = { startTime, endTime };
+    }
+
+    private _flashOutEase: {
         startTime: number;
         endTime: number;
     } | null = null;
 
-    /**
-     * 每帧更新 - 需要在场景的 update 中调用
-     */
-    update(_time: number, delta: number): void {
-        const dt = delta / 1000; // 转换为秒
+    private _flashInEase: {
+        startTime: number;
+        endTime: number;
+    } | null = null;
 
+    update(_time: number, delta: number): void {
+        const dt = delta / 1000;
         this._time += dt;
 
-        // 处理 midFlash 缓动
-        if (this._flashEase) {
+        // 处理闪光出场缓动（圆形扩散）
+        if (this._flashOutEase) {
             const t = Math.min(
                 1,
-                (this._time - this._flashEase.startTime) /
-                    (this._flashEase.endTime - this._flashEase.startTime),
+                (this._time - this._flashOutEase.startTime) /
+                    (this._flashOutEase.endTime - this._flashOutEase.startTime),
             );
-            this._midFlash =
-                this._flashEase.start +
-                (this._flashEase.target - this._flashEase.start) * t;
+            this._flashRadius = 1.2 * (t * t * t);
+            this._flashOpacity = 1;
             if (t >= 1) {
-                this._midFlash = this._flashEase.target;
-                this._flashEase = null;
+                this._flashRadius = 1.2;
+                this._flashOutEase = null;
             }
         }
+
+        // 处理闪光进场缓动（透明度渐变）
+        if (this._flashInEase) {
+            const t = Math.min(
+                1,
+                (this._time - this._flashInEase.startTime) /
+                    (this._flashInEase.endTime - this._flashInEase.startTime),
+            );
+            this._flashOpacity = 1.0 - t * t * t;
+            this._flashRadius = 1.2;
+            if (t >= 1) {
+                this._flashOpacity = 0;
+                this._flashInEase = null;
+            }
+        }
+
+        this.setUniform("uTime", this._time);
+        this.setUniform("uVortSpeed", this._vortSpeed);
+        this.setUniform("uColour1", this._colour1);
+        this.setUniform("uColour2", this._colour2);
+        this.setUniform("uMidFlash", this._midFlash);
+        this.setUniform("uVortOffset", this._vortOffset);
+        this.setUniform("uFlashRadius", this._flashRadius);
+        this.setUniform("uFlashOpacity", this._flashOpacity);
     }
 
-    /**
-     * 窗口大小变化时更新分辨率
-     */
     private _onResize = (gameSize: Phaser.Structs.Size): void => {
         this.setUniform("uResolution", [gameSize.width, gameSize.height]);
     };
 
-    /**
-     * 销毁
-     */
     preDestroy(): void {
         this.scene.scale.off("resize", this._onResize, this);
         super.preDestroy();

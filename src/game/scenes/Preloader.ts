@@ -19,7 +19,6 @@ export class Preloader extends Scene {
 
         // 加载 shader 源码到缓存
         this.load.text("splashFrag", "resources/shaders/splash_phaser.fs");
-        this.load.text("flashFrag", "resources/shaders/flash_phaser.fs");
 
         // 加载 Joker 卡精灵图
         this.load.spritesheet("Jokers", "resources/textures/2x/Jokers.png", {
@@ -47,6 +46,10 @@ export class Preloader extends Scene {
         this.load.audio("music1", "resources/sounds/music1.ogg");
         this.load.audio("whoosh1", "resources/sounds/whoosh1.ogg");
         this.load.audio("introPad1", "resources/sounds/introPad1.ogg");
+        this.load.audio(
+            "splash_buildup",
+            "resources/sounds/splash_buildup.ogg",
+        );
     }
 
     create() {

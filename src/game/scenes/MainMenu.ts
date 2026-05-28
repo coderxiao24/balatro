@@ -17,7 +17,7 @@ export class MainMenu extends Scene {
         super("MainMenu");
     }
 
-    create() {
+    create(data?: { skipFlashIn?: boolean }) {
         const { width, height } = this.cameras.main;
 
         this.bgShader = new BalatroSplash(
@@ -37,6 +37,11 @@ export class MainMenu extends Scene {
         );
         this.add.existing(this.bgShader);
 
+        // 闪光进场：从 Splash 场景自动跳转过来时做闪光入场，点击跳转则跳过
+        if (!data?.skipFlashIn) {
+            this.bgShader.flashIn(2 * 1000);
+        }
+
         this.logo = this.add.image(
             width / 2,
             height / 2 - recalcTileSize(width, height),
@@ -50,13 +55,21 @@ export class MainMenu extends Scene {
             height / 2 - recalcTileSize(width, height),
             ClickMode.flip,
         );
-        console.log(666, A);
+
         EventBus.emit("current-scene-ready", this);
 
-        this.sound.play("music1", {
-            volume: 0.6,
+        // music1 渐入：初始音量 0，在 2 秒内逐渐增加到 0.6
+        const music = this.sound.add("music1", {
+            volume: 0.2,
             rate: 0.7,
             loop: true,
+        });
+        music.play();
+        this.tweens.add({
+            targets: music,
+            volume: 0.6,
+            duration: 2 * 1000,
+            ease: "Linear",
         });
     }
 
