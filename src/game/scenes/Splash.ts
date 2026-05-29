@@ -1,9 +1,10 @@
 import * as Phaser from "phaser";
 import { BalatroSplash } from "../shaders/BalatroSplash";
 import { calcScale } from "../Constants";
-const { Scene } = Phaser;
+import { AudioManager } from "../AudioManager";
+import { BaseScene } from "./BaseScene";
 
-export class Splash extends Scene {
+export class Splash extends BaseScene {
     private bgShader!: BalatroSplash;
     private elapsed = 0;
     private jokerCard!: Phaser.GameObjects.Image;
@@ -12,13 +13,10 @@ export class Splash extends Scene {
     private jokerCardEntered = false;
     private jokerCardElapsed = 0;
 
-    private introPad1!: Phaser.Sound.BaseSound;
-    private whoosh1!: Phaser.Sound.BaseSound;
-    private splashBuildup!: Phaser.Sound.BaseSound;
-
     private flashTriggered = false;
     private splashBuildupPlayed = false;
     private jokerCardDissolving = false;
+
     constructor() {
         super("Splash");
     }
@@ -45,29 +43,12 @@ export class Splash extends Scene {
         );
         this.add.existing(this.bgShader);
 
-        this.introPad1 = this.sound.add("introPad1", {
-            volume: 0.6,
-            rate: 0.704,
-        });
-        this.whoosh1 = this.sound.add("whoosh1", {
-            volume: 0.2,
-            rate: 0.7,
-        });
-        this.splashBuildup = this.sound.add("splash_buildup", {
-            volume: 0.7,
-            rate: 1,
-        });
-
         // 重置状态
         this.elapsed = 0;
         this.jokerCardEntered = false;
 
         // 点击屏幕任意位置直接跳转到主菜单（不做闪光入场）
         this.input.once("pointerdown", () => {
-            this.whoosh1.stop();
-            this.introPad1.stop();
-            this.splashBuildup.stop();
-
             this.scene.start("MainMenu", { skipFlashIn: true });
         });
     }
@@ -92,7 +73,10 @@ export class Splash extends Scene {
         // 在 2 秒时播放 splash_buildup 音效
         if (!this.splashBuildupPlayed && this.elapsed >= 2) {
             this.splashBuildupPlayed = true;
-            this.splashBuildup.play();
+            AudioManager.getInstance().playSound("Splash", "splash_buildup", {
+                volume: 0.7,
+                rate: 1,
+            });
         }
 
         // 在 6 秒时触发 Joker 卡溶解消失
@@ -120,9 +104,6 @@ export class Splash extends Scene {
 
         // 在 11 秒时跳转到主菜单
         if (this.elapsed >= 13) {
-            this.whoosh1.stop();
-            this.introPad1.stop();
-            this.splashBuildup.stop();
             this.scene.start("MainMenu");
         }
     }
@@ -137,9 +118,15 @@ export class Splash extends Scene {
 
         this.jokerCard.setScale(this.jokerCardScale);
 
-        this.whoosh1.play();
-
-        this.introPad1.play();
+        // 通过 AudioManager 播放音效（自动注册管理）
+        AudioManager.getInstance().playSound("Splash", "whoosh1", {
+            volume: 0.2,
+            rate: 0.7,
+        });
+        AudioManager.getInstance().playSound("Splash", "introPad1", {
+            volume: 0.6,
+            rate: 0.704,
+        });
 
         // 入场动画：从起始位置弹入到目标位置
         // 使用 Back.easeOut 模拟原游戏的弹性效果

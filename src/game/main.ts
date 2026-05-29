@@ -5,6 +5,7 @@ import { MainMenu } from "./scenes/MainMenu";
 import { AUTO, Game, Scale } from "phaser";
 import { Preloader } from "./scenes/Preloader";
 import { Splash } from "./scenes/Splash";
+import { AudioManager } from "./AudioManager";
 
 //  Find out more information about the Game Config at:
 //  https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
@@ -21,7 +22,10 @@ const config: Phaser.Types.Core.GameConfig = {
 };
 
 const StartGame = (parent: string) => {
-    return new Game({ ...config, parent });
+    const game = new Game({ ...config, parent });
+    AudioManager.getInstance().init(game.sound);
+
+    return game;
 };
 
 export default StartGame;
