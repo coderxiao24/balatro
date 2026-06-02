@@ -1,6 +1,7 @@
 import { Scene } from "phaser";
+import { BaseScene } from "./BaseScene";
 
-export class Preloader extends Scene {
+export class Preloader extends BaseScene {
     private progressBar!: Phaser.GameObjects.Graphics;
 
     constructor() {

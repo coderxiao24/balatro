@@ -1,11 +1,10 @@
-import { EventBus } from "../EventBus";
 import { Scene } from "phaser";
+import { BaseScene } from "./BaseScene";
 
-export class Game extends Scene {
+export class Game extends BaseScene {
     camera: Phaser.Cameras.Scene2D.Camera;
     background: Phaser.GameObjects.Image;
     gameText: Phaser.GameObjects.Text;
-
     constructor() {
         super("Game");
     }
@@ -35,8 +34,6 @@ export class Game extends Scene {
             )
             .setOrigin(0.5)
             .setDepth(100);
-
-        EventBus.emit("current-scene-ready", this);
     }
 
     changeScene() {

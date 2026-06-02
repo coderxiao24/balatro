@@ -13,6 +13,8 @@
  */
 
 import { EventBus } from "./EventBus";
+import scenesBGMMap from "./data/scenesBGM";
+import { sceneNames } from "./data/types/scenesName";
 
 export interface AudioOptions {
     volume?: number;
@@ -237,6 +239,10 @@ export class AudioManager {
             console.log("AudioManager: scene-destroy", sceneKey);
             this.cleanupScene(sceneKey);
         });
+        EventBus.on("scene-create", (sceneKey: sceneNames) => {
+            console.log("AudioManager: scene-create", sceneKey);
+            scenesBGMMap[sceneKey]?.();
+        });
     }
 
     // ==================== 生命周期管理 ====================
@@ -327,16 +333,6 @@ export class AudioManager {
                 startVolume + (targetVolume - startVolume) * progress;
 
             audio.sound.volume = newVolume;
-            if (audio.audioKey === "music1") {
-                console.log(
-                    666,
-                    audio.audioKey,
-                    progress,
-                    newVolume,
-                    startVolume,
-                    targetVolume,
-                );
-            }
 
             if (progress >= 1) {
                 clearInterval(audio.fadeTimer);

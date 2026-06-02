@@ -26,5 +26,8 @@ export class BaseScene extends Scene {
         this.events.once("destroy", () => {
             EventBus.emit("scene-destroy", this.scene.key);
         });
+        this.events.once("create", () => {
+            EventBus.emit("scene-create", this.scene.key);
+        });
     }
 }

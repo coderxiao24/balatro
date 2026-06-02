@@ -1,6 +1,7 @@
 import { Scene } from "phaser";
+import { BaseScene } from "./BaseScene";
 
-export class Boot extends Scene {
+export class Boot extends BaseScene {
     constructor() {
         super("Boot");
     }

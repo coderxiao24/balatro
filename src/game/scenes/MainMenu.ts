@@ -1,11 +1,9 @@
 import { GameObjects } from "phaser";
 
-import { EventBus } from "../EventBus";
 import { BalatroSplash } from "../shaders/BalatroSplash";
 import { calcPx, calcScale } from "../Constants";
 import { ClickMode, PlayingCard } from "../data/PlayingCard";
 import { CardValue, Suit } from "../data/types/card";
-import { AudioManager } from "../AudioManager";
 import { BaseScene } from "./BaseScene";
 
 export class MainMenu extends BaseScene {
@@ -53,16 +51,6 @@ export class MainMenu extends BaseScene {
         if (A.container) {
             A.setScale(calcScale(width, A.container?.width, 240));
         }
-
-        EventBus.emit("current-scene-ready", this);
-
-        // 通过 AudioManager 播放背景音乐（自动管理后台暂停/恢复）
-        // fadeIn: 2000 表示 2 秒内从 0 渐变到目标音量 0.6
-        AudioManager.getInstance().playMusic("MainMenu", "music1", {
-            volume: 0.6,
-            rate: 0.7,
-            fadeIn: 3 * 1000,
-        });
     }
 
     update(time: number, delta: number): void {
