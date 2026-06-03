@@ -73,10 +73,14 @@ export class Splash extends BaseScene {
         // 在 2 秒时播放 splash_buildup 音效
         if (!this.splashBuildupPlayed && this.elapsed >= 2) {
             this.splashBuildupPlayed = true;
-            AudioManager.getInstance().playSound("Splash", "splash_buildup", {
-                volume: 0.7,
-                rate: 1,
-            });
+            AudioManager.getInstance().playSound(
+                this.scene.key,
+                "splash_buildup",
+                {
+                    volume: 0.7,
+                    rate: 1,
+                },
+            );
         }
 
         // 在 6 秒时触发 Joker 卡溶解消失
@@ -119,11 +123,11 @@ export class Splash extends BaseScene {
         this.jokerCard.setScale(this.jokerCardScale);
 
         // 通过 AudioManager 播放音效（自动注册管理）
-        AudioManager.getInstance().playSound("Splash", "whoosh1", {
+        AudioManager.getInstance().playSound(this.scene.key, "whoosh1", {
             volume: 0.2,
             rate: 0.7,
         });
-        AudioManager.getInstance().playSound("Splash", "introPad1", {
+        AudioManager.getInstance().playSound(this.scene.key, "introPad1", {
             volume: 0.6,
             rate: 0.704,
         });

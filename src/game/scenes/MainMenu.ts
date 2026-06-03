@@ -1,10 +1,11 @@
-import { GameObjects } from "phaser";
+import { GameObjects, Geom } from "phaser";
 
 import { BalatroSplash } from "../shaders/BalatroSplash";
 import { calcPx, calcScale } from "../Constants";
 import { ClickMode, PlayingCard } from "../data/PlayingCard";
 import { CardValue, Suit } from "../data/types/card";
 import { BaseScene } from "./BaseScene";
+import { AudioManager } from "../AudioManager";
 
 export class MainMenu extends BaseScene {
     background: GameObjects.Image;
@@ -37,11 +38,6 @@ export class MainMenu extends BaseScene {
         );
         this.add.existing(this.bgShader);
 
-        // 闪光进场：从 Splash 场景自动跳转过来时做闪光入场，点击跳转则跳过
-        if (!data?.skipFlashIn) {
-            this.bgShader.flashIn(2 * 1000);
-        }
-
         this.logo = this.add.image(width / 2, calcPx(width, 460), "balatro");
 
         this.logo.setScale(calcScale(width, this.logo.height, 863));
@@ -52,62 +48,133 @@ export class MainMenu extends BaseScene {
             A.setScale(calcScale(width, A.container?.width, 240));
         }
 
-        // 1. 创建一个容器，用来装这三个按钮 (x, y 是整个按钮组的中心位置)
-        const buttonGroup = this.add.container(
-            width / 2,
-            height - calcPx(width, 88) - calcPx(width, 190) / 2,
+        // 创建按钮组（每个按钮+文字放在一个容器中）
+        const createButton = (
+            x: number,
+            y: number,
+            w: number,
+            h: number,
+            color: number,
+            text: string,
+            fontSize: number,
+            onClick: () => void,
+        ) => {
+            const container = this.add.container(x, y);
+
+            const btn = this.add
+                .rectangle(0, 0, w, h, color)
+                .setRounded(calcPx(width, 12));
+
+            const label = this.add
+                .text(0, 0, text, {
+                    fontSize: `${fontSize}px`,
+                    color: "#ffffff",
+                    fontFamily: "NotoSansSC",
+                })
+                .setOrigin(0.5);
+
+            container.add([btn, label]);
+
+            container.setInteractive(
+                new Geom.Rectangle(-w / 2, -h / 2, w, h),
+                Geom.Rectangle.Contains,
+            );
+
+            container.on("pointerover", () => {
+                container.y = calcPx(width, 12);
+                container.setAlpha(0.5);
+            });
+            container.on("pointerout", () => {
+                container.y = 0;
+                container.setAlpha(1);
+            });
+
+            container.on("pointerdown", () => {
+                AudioManager.getInstance().playSound(this.scene.key, "button", {
+                    volume: 0.7,
+                    rate: 0.8,
+                });
+                onClick();
+            });
+
+            return container;
+        };
+
+        const targetY = height - calcPx(width, 88) - calcPx(width, 198) / 2;
+
+        const buttonGroup = this.add.container(width / 2, targetY);
+
+        const spacing = calcPx(width, 20);
+
+        const startGameBtn = createButton(
+            -(calcPx(width, 352) / 2 + calcPx(width, 256) / 2 + spacing),
+            0,
+            calcPx(width, 352),
+            calcPx(width, 150),
+            0x449bf8,
+            "开始游戏",
+            calcPx(width, 70),
+            () => {
+                this.scene.start("Game");
+            },
         );
 
-        const spacing = calcPx(width, 20); // 按钮之间的间距
+        const optionBtn = createButton(
+            0,
+            0,
+            calcPx(width, 256),
+            calcPx(width, 130),
+            0xf0a63b,
+            "选项",
+            calcPx(width, 42),
+            () => {
+                // this.scene.start("Option");
+            },
+        );
 
-        // 2. 创建三个矩形作为按钮
-        // 第一个按钮 (位置在左边)
-        const btn1 = this.add
-            .rectangle(
-                -(calcPx(width, 352) / 2 + calcPx(width, 256) / 2 + spacing),
-                0,
-                calcPx(width, 352),
-                calcPx(width, 150),
-                0x449bf8,
-            )
-            .setRounded(calcPx(width, 12));
-        // 第二个按钮 (位置在中间)
-        const btn2 = this.add
-            .rectangle(0, 0, calcPx(width, 256), calcPx(width, 130), 0xf0a63b)
-            .setRounded(calcPx(width, 12));
-        // 第三个按钮 (位置在右边)
-        const btn3 = this.add
-            .rectangle(
-                calcPx(width, 352) / 2 + calcPx(width, 256) / 2 + spacing,
-                0,
-                calcPx(width, 352),
-                calcPx(width, 150),
-                0x6ba688,
-            )
-            .setRounded(calcPx(width, 12));
+        const favoriteBtn = createButton(
+            calcPx(width, 352) / 2 + calcPx(width, 256) / 2 + spacing,
+            0,
+            calcPx(width, 352),
+            calcPx(width, 150),
+            0x6ba688,
+            "收藏",
+            calcPx(width, 52),
+            () => {
+                // this.scene.start("Favorite");
+            },
+        );
 
-        // 3. 为每个矩形开启交互，并添加鼠标悬停和点击效果
-        // [btn1, btn2, btn3].forEach((btn, index) => {
-        //     btn.setInteractive({ useHandCursor: true }) // 开启交互，鼠标放上去变小手
-        //         .on("pointerover", () => btn.setFillStyle(0xa9a9a9)) // 鼠标悬停时变亮一点
-        //         .on("pointerout", () => btn.setFillStyle(buttonColor)) // 鼠标离开恢复原色
-        //         .on("pointerdown", () => {
-        //             console.log(`第 ${index + 1} 个按钮被点击了！`);
-        //             // 在这里写你的点击回调逻辑
-        //         });
-        // });
-
-        buttonGroup.add([btn1, btn2, btn3]);
+        buttonGroup.add([startGameBtn, optionBtn, favoriteBtn]);
 
         const groupBg = this.add.rectangle(
             0,
             0,
             calcPx(width, 352) * 2 + calcPx(width, 256) + spacing * 4,
-            calcPx(width, 150) + calcPx(width, 16) * 2,
+            calcPx(width, 150) + calcPx(width, 24) * 2,
             0x536267,
         );
         groupBg.setRounded(calcPx(width, 20)); // 设置圆角
         buttonGroup.addAt(groupBg, 0);
+
+        // 闪光进场：从 Splash 场景自动跳转过来时做闪光入场，点击跳转则跳过
+        if (!data?.skipFlashIn) {
+            // 有闪光进场：按钮组从屏幕下方飞入
+            buttonGroup.y = height + calcPx(width, 198);
+
+            this.bgShader.flashIn(2 * 1000, () => {
+                AudioManager.getInstance().playSound(this.scene.key, "whoosh", {
+                    volume: 0.2,
+                    rate: 0.7,
+                });
+                this.tweens.add({
+                    targets: buttonGroup,
+                    y: targetY,
+                    duration: 400,
+                    ease: "Back.easeOut",
+                });
+            });
+        }
     }
 
     update(time: number, delta: number): void {

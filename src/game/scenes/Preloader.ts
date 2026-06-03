@@ -45,7 +45,9 @@ export class Preloader extends BaseScene {
         this.load.image("balatro", "resources/textures/2x/balatro.png");
 
         this.load.audio("music1", "resources/sounds/music1.ogg");
+        this.load.audio("button", "resources/sounds/button.ogg");
         this.load.audio("whoosh1", "resources/sounds/whoosh1.ogg");
+        this.load.audio("whoosh", "resources/sounds/whoosh.ogg");
         this.load.audio("introPad1", "resources/sounds/introPad1.ogg");
         this.load.audio(
             "splash_buildup",

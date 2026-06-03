@@ -98,8 +98,9 @@ export class BalatroSplash extends Phaser.GameObjects.Shader {
      * 闪光进场：白光覆盖全屏完全不透明，逐渐透明度变成0
      * 变化先慢后快（easeInCubic）
      * @param duration 持续时间（毫秒）
+     * @param onComplete 闪光完成后的回调
      */
-    flashIn(duration: number = 2000): void {
+    flashIn(duration: number = 2000, onComplete?: () => void): void {
         const startTime = this._time;
         const endTime = startTime + duration / 1000;
 
@@ -107,6 +108,7 @@ export class BalatroSplash extends Phaser.GameObjects.Shader {
         this._flashOpacity = 1;
 
         this._flashInEase = { startTime, endTime };
+        this._flashInCallback = onComplete ?? null;
     }
 
     private _flashOutEase: {
@@ -118,6 +120,8 @@ export class BalatroSplash extends Phaser.GameObjects.Shader {
         startTime: number;
         endTime: number;
     } | null = null;
+
+    private _flashInCallback: (() => void) | null = null;
 
     update(_time: number, delta: number): void {
         const dt = delta / 1000;
@@ -150,6 +154,10 @@ export class BalatroSplash extends Phaser.GameObjects.Shader {
             if (t >= 1) {
                 this._flashOpacity = 0;
                 this._flashInEase = null;
+                if (this._flashInCallback) {
+                    this._flashInCallback();
+                    this._flashInCallback = null;
+                }
             }
         }
 
