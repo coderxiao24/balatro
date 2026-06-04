@@ -1,6 +1,6 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
-
+import path from "path";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
     // 根据 mode 加载对应的 .env 文件（如 .env.development）
@@ -16,6 +16,11 @@ export default defineConfig(({ mode }) => {
         // 将环境变量暴露给客户端
         define: {
             __APP_ENV__: JSON.stringify(env),
+        },
+        resolve: {
+            alias: {
+                "@": path.resolve(__dirname, "./src"),
+            },
         },
     };
 });

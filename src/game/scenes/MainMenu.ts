@@ -5,7 +5,7 @@ import { calcPx, calcScale } from "../Constants";
 import { ClickMode, PlayingCard } from "../data/PlayingCard";
 import { CardValue, Suit } from "../data/types/card";
 import { BaseScene } from "./BaseScene";
-import { AudioManager } from "../AudioManager";
+import { AudioManager } from "@/game/manager/AudioManager";
 
 export class MainMenu extends BaseScene {
     background: GameObjects.Image;

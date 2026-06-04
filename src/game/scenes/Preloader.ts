@@ -19,40 +19,29 @@ export class Preloader extends BaseScene {
         });
 
         // 加载 shader 源码到缓存
-        this.load.text("splashFrag", "resources/shaders/splash_phaser.fs");
+        this.load.text("splashFrag", "assets/shaders/splash_phaser.fs");
 
         // 加载 Joker 卡精灵图
-        this.load.spritesheet("Jokers", "resources/textures/2x/Jokers.png", {
+        this.load.spritesheet("Jokers", "assets/textures/2x/Jokers.png", {
             frameWidth: 142,
             frameHeight: 190,
         });
-        this.load.spritesheet(
-            "8BitDeck",
-            "resources/textures/2x/8BitDeck.png",
-            {
-                frameWidth: 142,
-                frameHeight: 190,
-            },
-        );
-        this.load.spritesheet(
-            "Enhancers",
-            "resources/textures/2x/Enhancers.png",
-            {
-                frameWidth: 142,
-                frameHeight: 190,
-            },
-        );
-        this.load.image("balatro", "resources/textures/2x/balatro.png");
+        this.load.spritesheet("8BitDeck", "assets/textures/2x/8BitDeck.png", {
+            frameWidth: 142,
+            frameHeight: 190,
+        });
+        this.load.spritesheet("Enhancers", "assets/textures/2x/Enhancers.png", {
+            frameWidth: 142,
+            frameHeight: 190,
+        });
+        this.load.image("balatro", "assets/textures/2x/balatro.png");
 
-        this.load.audio("music1", "resources/sounds/music1.ogg");
-        this.load.audio("button", "resources/sounds/button.ogg");
-        this.load.audio("whoosh1", "resources/sounds/whoosh1.ogg");
-        this.load.audio("whoosh", "resources/sounds/whoosh.ogg");
-        this.load.audio("introPad1", "resources/sounds/introPad1.ogg");
-        this.load.audio(
-            "splash_buildup",
-            "resources/sounds/splash_buildup.ogg",
-        );
+        this.load.audio("music1", "assets/sounds/music1.ogg");
+        this.load.audio("button", "assets/sounds/button.ogg");
+        this.load.audio("whoosh1", "assets/sounds/whoosh1.ogg");
+        this.load.audio("whoosh", "assets/sounds/whoosh.ogg");
+        this.load.audio("introPad1", "assets/sounds/introPad1.ogg");
+        this.load.audio("splash_buildup", "assets/sounds/splash_buildup.ogg");
     }
 
     create() {

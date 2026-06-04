@@ -5,7 +5,7 @@ import { MainMenu } from "./scenes/MainMenu";
 import { AUTO, Game, Scale } from "phaser";
 import { Preloader } from "./scenes/Preloader";
 import { Splash } from "./scenes/Splash";
-import { AudioManager } from "./AudioManager";
+import { AudioManager } from "@/game/manager/AudioManager";
 
 //  Find out more information about the Game Config at:
 //  https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig

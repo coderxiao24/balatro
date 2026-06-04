@@ -1,4 +1,4 @@
-import { AudioManager } from "../AudioManager";
+import { AudioManager } from "@/game/manager/AudioManager";
 import { sceneNames } from "./types/scenesName";
 const scenesBGMMap: Record<sceneNames, () => void> = {
     [sceneNames.MainMenu]: () => {
