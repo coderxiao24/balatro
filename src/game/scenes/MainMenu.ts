@@ -42,7 +42,13 @@ export class MainMenu extends BaseScene {
 
         this.logo.setScale(calcScale(width, this.logo.height, 863));
         const A = new PlayingCard(Suit.Spades, CardValue.Ace);
-        A.addToScene(this, width / 2, calcPx(width, 460), ClickMode.flip);
+        A.addToScene(
+            this,
+            width / 2,
+            calcPx(width, 460),
+            ClickMode.select,
+            true,
+        );
 
         if (A.container) {
             A.setScale(calcScale(width, A.container?.width, 240));
