@@ -14,6 +14,7 @@ export class MainMenu extends BaseScene {
 
     logoTween: Phaser.Tweens.Tween | null;
     bgShader: BalatroSplash;
+    buttonGroup: GameObjects.Container | null = null;
 
     constructor() {
         super("MainMenu");
@@ -43,17 +44,24 @@ export class MainMenu extends BaseScene {
 
         this.logo.setScale(calcScale(width, this.logo.height, 863));
         const A = new PlayingCard(Suit.Spades, PlayingCardValue.Ace);
-        A.addToScene(
-            this,
-            width / 2,
-            calcPx(width, 460),
-            PlayingCardClickMode.select,
-            true,
-        );
+        A.addToScene({
+            scene: this,
+            x: width / 2,
+            y: calcPx(width, 460),
+            clickMode: PlayingCardClickMode.none,
+            enableDrag: true,
+        });
 
         if (A.container) {
-            A.setScale(calcScale(width, A.container?.width, 240));
+            A.setScale(calcScale(width, A.container.width, 240));
         }
+
+        // 设置拖拽回调，包括放置验证
+        A.setDragCallbacks({
+            canDrop: () => {
+                return false;
+            },
+        });
 
         // 创建按钮组（每个按钮+文字放在一个容器中）
         const createButton = (
@@ -109,7 +117,7 @@ export class MainMenu extends BaseScene {
 
         const targetY = height - calcPx(width, 88) - calcPx(width, 198) / 2;
 
-        const buttonGroup = this.add.container(width / 2, targetY);
+        this.buttonGroup = this.add.container(width / 2, targetY);
 
         const spacing = calcPx(width, 20);
 
@@ -152,7 +160,7 @@ export class MainMenu extends BaseScene {
             },
         );
 
-        buttonGroup.add([startGameBtn, optionBtn, favoriteBtn]);
+        this.buttonGroup.add([startGameBtn, optionBtn, favoriteBtn]);
 
         const groupBg = this.add.rectangle(
             0,
@@ -162,12 +170,12 @@ export class MainMenu extends BaseScene {
             0x536267,
         );
         groupBg.setRounded(calcPx(width, 20)); // 设置圆角
-        buttonGroup.addAt(groupBg, 0);
+        this.buttonGroup.addAt(groupBg, 0);
 
         // 闪光进场：从 Splash 场景自动跳转过来时做闪光入场，点击跳转则跳过
         if (!data?.skipFlashIn) {
             // 有闪光进场：按钮组从屏幕下方飞入
-            buttonGroup.y = height + calcPx(width, 198);
+            this.buttonGroup.y = height + calcPx(width, 198);
 
             this.bgShader.flashIn(2 * 1000, () => {
                 AudioManager.getInstance().playSound(this.scene.key, "whoosh", {
@@ -175,7 +183,7 @@ export class MainMenu extends BaseScene {
                     rate: 0.7,
                 });
                 this.tweens.add({
-                    targets: buttonGroup,
+                    targets: this.buttonGroup,
                     y: targetY,
                     duration: 400,
                     ease: "Back.easeOut",
@@ -187,5 +195,14 @@ export class MainMenu extends BaseScene {
     update(time: number, delta: number): void {
         // 每帧更新着色器动画
         this.bgShader.update(time, delta);
+    }
+
+    /** 检查卡牌是否在按钮组内 */
+    private isInsideButtonGroup(x: number, y: number): boolean {
+        if (!this.buttonGroup) return false;
+
+        // 获取按钮组的边界
+        const bounds = this.buttonGroup.getBounds();
+        return Geom.Rectangle.Contains(bounds, x, y);
     }
 }

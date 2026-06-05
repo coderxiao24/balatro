@@ -1,5 +1,11 @@
 import Phaser from "phaser";
-import { Suit, PlayingCardValue, PlayingCardClickMode } from "@/types";
+import {
+    Suit,
+    PlayingCardValue,
+    PlayingCardClickMode,
+    AddToSceneOptions,
+    DragCallbacksOptions,
+} from "@/types";
 import {
     PLAYING_CARD_ALL_SUITS,
     PLAYING_CARD_ALL_VALUES,
@@ -36,16 +42,30 @@ export class PlayingCard {
     // 长按拖拽相关属性
     private enableDrag = false;
     private longPressTimer: Phaser.Time.TimerEvent | null = null;
-    private longPressStartTime = 0;
+
     private isLongPressTriggered = false;
     private dragOffsetX = 0;
     private dragOffsetY = 0;
     private dragThreshold = 5; // 移动阈值，超过此距离才视为拖拽
     private longPressThreshold = 200; // 长按阈值（毫秒）
-    private onDragStartCallback: ((card: PlayingCard) => void) | null = null;
+    private originalX = 0; // 拖拽开始时的原始X位置
+    private originalY = 0; // 拖拽开始时的原始Y位置
+    private onDragStartCallback:
+        | ((card: PlayingCard) => void)
+        | null
+        | undefined = null;
     private onDragEndCallback:
         | ((card: PlayingCard, x: number, y: number) => void)
-        | null = null;
+        | null
+        | undefined = null;
+    private canDropCallback:
+        | ((
+              card: PlayingCard,
+              x: number,
+              y: number,
+          ) => boolean | { x: number; y: number } | null)
+        | null
+        | undefined = null; // 验证是否可放置的回调函数，返回布尔值或吸附位置对象
 
     constructor(suit?: Suit, value?: PlayingCardValue, faceUp = true) {
         this.suit =
@@ -67,19 +87,17 @@ export class PlayingCard {
 
     /**
      * 将牌添加到场景中
-     * @param scene     目标场景
-     * @param x         x 坐标
-     * @param y         y 坐标
-     * @param clickMode 点击交互模式："none" | "flip" | "select"，默认 "none"
-     * @param enableDrag 是否启用长按拖拽，默认 false
+     * @param options 配置选项
      */
-    addToScene(
-        scene: Phaser.Scene,
-        x: number,
-        y: number,
-        clickMode: PlayingCardClickMode = PlayingCardClickMode.none,
-        enableDrag = false,
-    ): Phaser.GameObjects.Container {
+    addToScene(options: AddToSceneOptions): Phaser.GameObjects.Container {
+        const {
+            scene,
+            x,
+            y,
+            clickMode = PlayingCardClickMode.none,
+            enableDrag = false,
+        } = options;
+
         this.scene = scene;
         this.clickMode = clickMode;
         this.enableDrag = enableDrag;
@@ -92,11 +110,10 @@ export class PlayingCard {
 
         this.container = scene.add.container(x, y, [this.base, this.overlay]);
 
+        // 始终设置容器尺寸，确保外部可以正确获取宽高
+        this.container.setSize(this.base.displayWidth, this.base.displayHeight);
+
         if (clickMode !== PlayingCardClickMode.none || enableDrag) {
-            this.container.setSize(
-                this.base.displayWidth,
-                this.base.displayHeight,
-            );
             this.container.setInteractive({
                 useHandCursor: true,
             });
@@ -208,12 +225,10 @@ export class PlayingCard {
     // ── 长按拖拽相关方法 ──────────────────────────────
 
     /** 设置拖拽回调函数 */
-    setDragCallbacks(
-        onDragStart: (card: PlayingCard) => void,
-        onDragEnd: (card: PlayingCard, x: number, y: number) => void,
-    ): void {
-        this.onDragStartCallback = onDragStart;
-        this.onDragEndCallback = onDragEnd;
+    setDragCallbacks(options: DragCallbacksOptions): void {
+        this.onDragStartCallback = options.onDragStart;
+        this.onDragEndCallback = options.onDragEnd;
+        this.canDropCallback = options.canDrop ?? null;
     }
 
     /** 获取当前是否正在拖拽 */
@@ -236,18 +251,26 @@ export class PlayingCard {
             this.longPressTimer = null;
         }
 
-        // 记录按下时间和偏移量
-        this.longPressStartTime = Date.now();
         this.isLongPressTriggered = false;
         this.dragOffsetX = pointer.x - this.container.x;
         this.dragOffsetY = pointer.y - this.container.y;
 
-        // 如果启用了拖拽，设置长按计时器
+        // 记录拖拽开始时的原始位置
+        this.originalX = this.container.x;
+        this.originalY = this.container.y;
+
+        // 如果启用了拖拽
         if (this.enableDrag) {
-            this.longPressTimer = this.scene.time.delayedCall(
-                this.longPressThreshold,
-                () => this.triggerLongPress(pointer),
-            );
+            // 如果没有点击模式，则直接触发拖拽（无需等待长按）
+            if (this.clickMode === PlayingCardClickMode.none) {
+                this.triggerLongPress(pointer);
+            } else {
+                // 否则需要等待长按阈值来区分点击和拖拽
+                this.longPressTimer = this.scene.time.delayedCall(
+                    this.longPressThreshold,
+                    () => this.triggerLongPress(pointer),
+                );
+            }
         }
     }
 
@@ -273,11 +296,8 @@ export class PlayingCard {
                     this.longPressTimer = null;
                 }
 
-                // 如果启用了拖拽且点击模式为select，触发拖拽
-                if (
-                    this.enableDrag &&
-                    this.clickMode === PlayingCardClickMode.select
-                ) {
+                // 如果启用了拖拽触发拖拽
+                if (this.enableDrag) {
                     this.triggerLongPress(pointer);
                 }
             }
@@ -304,23 +324,78 @@ export class PlayingCard {
         if (this.isLongPressTriggered) {
             this.isLongPressTriggered = false;
 
-            // 触发拖拽结束回调
-            this.onDragEndCallback?.(this, this.container.x, this.container.y);
-            // 卡片被放回
-            this.scene.tweens.add({
-                targets: this.container,
-                scale: this.scale,
-                duration: 100,
-                ease: "Back.easeOut",
-            });
-            // 恢复深度
-            this.container.setDepth(0);
+            const currentX = this.container.x;
+            const currentY = this.container.y;
+
+            // 检查当前位置是否可放置
+            let dropResult: boolean | { x: number; y: number } | null = true;
+            if (this.canDropCallback) {
+                dropResult = this.canDropCallback(this, currentX, currentY);
+            }
+
+            if (dropResult === true) {
+                // 可以放置，留在当前位置
+                this.onDragEndCallback?.(this, currentX, currentY);
+                this.addDropShake();
+                this.container.setDepth(0);
+            } else if (dropResult && typeof dropResult === "object") {
+                // 返回了吸附位置，吸附到指定位置
+                this.snapToPosition(dropResult.x, dropResult.y);
+            } else {
+                // 不可放置（false 或 null），回弹到原始位置
+                this.snapBackToOriginal();
+            }
         } else {
             // 未触发拖拽，视为点击（仅在启用click模式时）
             if (this.clickMode !== PlayingCardClickMode.none) {
                 this.handleClick();
             }
         }
+    }
+
+    /** 回弹到原始位置 */
+    private snapBackToOriginal(): void {
+        if (!this.container || !this.scene) return;
+
+        // 使用动画回弹到原始位置
+        this.scene.tweens.add({
+            targets: this.container,
+            x: this.originalX,
+            y: this.originalY,
+            scale: this.scale,
+            rotation: 0,
+            duration: 200,
+            ease: "Back.easeOut",
+            onComplete: () => {
+                // 恢复深度
+                this.container?.setDepth(0);
+                // 触发拖拽结束回调（回到原始位置）
+                this.onDragEndCallback?.(this, this.originalX, this.originalY);
+            },
+        });
+    }
+
+    /** 吸附到指定位置 */
+    private snapToPosition(x: number, y: number): void {
+        if (!this.container || !this.scene) return;
+
+        // 使用动画吸附到指定位置
+        this.scene.tweens.add({
+            targets: this.container,
+            x: x,
+            y: y,
+            scale: this.scale,
+            duration: 150,
+            ease: "Back.easeOut",
+            onComplete: () => {
+                // 恢复深度
+                this.container?.setDepth(0);
+                // 触发拖拽结束回调（吸附到指定位置）
+                this.onDragEndCallback?.(this, x, y);
+                // 添加放下时的抖动效果
+                this.addDropShake();
+            },
+        });
     }
 
     /** 触发长按拖拽 */
@@ -333,15 +408,59 @@ export class PlayingCard {
         // 将卡片置于顶层
         this.container.setDepth(100);
 
-        // 卡片被拿起
-        this.scene.tweens.add({
-            targets: this.container,
-            scale: this.scale * 1.2,
-            duration: 100,
-            ease: "Back.easeOut",
-        });
+        // 卡片被拿起时的抖动效果
+        this.addPickupShake();
 
         // 触发拖拽开始回调
         this.onDragStartCallback?.(this);
+    }
+
+    /** 生成随机抖动旋转序列 */
+    private generateRandomShake(
+        maxAngle: number = 5,
+        steps: number = 4,
+    ): number[] {
+        const shake: number[] = [];
+        for (let i = 0; i < steps; i++) {
+            // 生成随机角度，范围在 -maxAngle 到 maxAngle 之间
+            const angle = Phaser.Math.DegToRad(
+                (Math.random() - 0.5) * 2 * maxAngle,
+            );
+            shake.push(angle);
+        }
+        shake.push(Phaser.Math.DegToRad(0)); // 最后回到0
+        return shake;
+    }
+
+    /** 添加拿起卡片时的抖动效果 */
+    private addPickupShake(): void {
+        if (!this.container || !this.scene) return;
+
+        // 生成随机抖动序列，每次抖动幅度略有不同
+        const shakeRotation = this.generateRandomShake(5, 4);
+
+        this.scene.tweens.add({
+            targets: this.container,
+            scale: this.scale * 1.2,
+            rotation: shakeRotation,
+            duration: 120 + Math.random() * 60, // 随机持续时间 120-180ms
+            ease: "Back.easeOut",
+        });
+    }
+
+    /** 添加放下卡片时的抖动效果 */
+    private addDropShake(): void {
+        if (!this.container || !this.scene) return;
+
+        // 生成随机抖动序列，放下时抖动幅度略小
+        const shakeRotation = this.generateRandomShake(5, 4);
+
+        this.scene.tweens.add({
+            targets: this.container,
+            scale: this.scale,
+            rotation: shakeRotation,
+            duration: 120 + Math.random() * 60, // 随机持续时间 120-180ms
+            ease: "Back.easeOut",
+        });
     }
 }

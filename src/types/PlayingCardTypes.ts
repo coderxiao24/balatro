@@ -39,3 +39,27 @@ export enum PlayingCardClickMode {
 }
 
 export type PlayingCardDict = Record<string, PlayingCard>;
+
+/**
+ * 添加卡牌到场景的配置选项
+ */
+export interface AddToSceneOptions {
+    scene: Phaser.Scene;
+    x: number;
+    y: number;
+    clickMode?: PlayingCardClickMode;
+    enableDrag?: boolean;
+}
+
+/**
+ * 拖拽回调配置选项
+ */
+export interface DragCallbacksOptions {
+    onDragStart?: (card: any) => void;
+    onDragEnd?: (card: any, x: number, y: number) => void;
+    canDrop?: (
+        card: any,
+        x: number,
+        y: number,
+    ) => boolean | { x: number; y: number } | null;
+}
