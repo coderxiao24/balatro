@@ -36,7 +36,7 @@ export class BalatroSplash extends Phaser.GameObjects.Shader {
         height: number,
         config?: BalatroSplashConfig,
     ) {
-        const fragSource = scene.cache.text.get("splashFrag");
+        const fragSource = scene.cache.shader.get("splashFrag").glsl;
 
         const shaderConfig: Phaser.Types.GameObjects.Shader.ShaderQuadConfig = {
             name: "BalatroSplash",

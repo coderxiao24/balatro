@@ -18,9 +18,7 @@ export class Preloader extends BaseScene {
             this.drawProgressBar(value);
         });
 
-        // 加载 shader 源码到缓存
-        this.load.text("splashFrag", "assets/shaders/splash_phaser.fs");
-
+        this.load.glsl("splashFrag", "assets/shaders/splash_phaser.glsl");
         // 加载 Joker 卡精灵图
         this.load.spritesheet("Jokers", "assets/textures/2x/Jokers.png", {
             frameWidth: 142,

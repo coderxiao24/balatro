@@ -1,30 +1,56 @@
-import { Scene } from "phaser";
 import { BaseScene } from "./BaseScene";
 
 export class Game extends BaseScene {
-    camera: Phaser.Cameras.Scene2D.Camera;
-    background: Phaser.GameObjects.Image;
-    gameText: Phaser.GameObjects.Text;
+    private _shader: any;
+
     constructor() {
         super("Game");
     }
 
-    create() {
-        this.camera = this.cameras.main;
-        // this.camera.setBackgroundColor(0x00ff00);
+    preload() {
+        this.load.glsl(
+            "perlinNoiseFunction",
+            "assets/shaders/perlinNoiseFunction.glsl",
+        );
+        this.load.glsl("waveProcess", "assets/shaders/waveProcess.glsl");
+    }
 
+    create() {
         const { width, height } = this.cameras.main;
 
-        this.gameText = this.add
-            .text(width / 2, height / 2, "Make something fun!", {
-                fontFamily: "NotoSansSC",
-                fontSize: 38,
-                color: "#ffffff",
-                stroke: "#000000",
-                strokeThickness: 8,
-                align: "center",
-            })
-            .setOrigin(0.5)
-            .setDepth(100);
+        const image = this.add
+            .image(width / 2, height / 2, "Jokers", 0)
+            .enableFilters();
+
+        const shaderConfig = {
+            name: "Noise",
+
+            shaderAdditions: [
+                {
+                    name: "PerlinNoise",
+                    additions: {
+                        fragmentHeader: this.cache.shader.get(
+                            "perlinNoiseFunction",
+                        ).glsl,
+                        fragmentProcess:
+                            this.cache.shader.get("waveProcess").glsl,
+                    },
+                },
+            ],
+            setupUniforms: (setUniform: (name: string, value: any) => void) => {
+                setUniform("time", (this.game.loop.time % 1000000) / 500);
+            },
+        };
+
+        this._shader = this.add.shader(
+            shaderConfig,
+            image.width / 2,
+            image.height / 2,
+            image.width,
+            image.height,
+        );
+        this._shader.setRenderToTexture("ooze");
+
+        image.filters?.internal.addDisplacement("ooze", 0, 0.5);
     }
 }
