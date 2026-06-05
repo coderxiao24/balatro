@@ -58,9 +58,7 @@ export class MainMenu extends BaseScene {
 
         // 设置拖拽回调，包括放置验证
         A.setDragCallbacks({
-            canDrop: () => {
-                return false;
-            },
+            canDrop: () => false,
         });
 
         // 创建按钮组（每个按钮+文字放在一个容器中）

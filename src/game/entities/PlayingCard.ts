@@ -50,6 +50,10 @@ export class PlayingCard {
     private longPressThreshold = 200; // 长按阈值（毫秒）
     private originalX = 0; // 拖拽开始时的原始X位置
     private originalY = 0; // 拖拽开始时的原始Y位置
+    private targetX = 0; // 拖拽目标X位置（用于平滑跟随）
+    private targetY = 0; // 拖拽目标Y位置（用于平滑跟随）
+    private smoothFactor = 0.15; // 平滑跟随系数（0-1，越小惯性越大）
+    private maxTiltAngle = Phaser.Math.DegToRad(10); // 最大倾斜角度
     private onDragStartCallback:
         | ((card: PlayingCard) => void)
         | null
@@ -118,21 +122,11 @@ export class PlayingCard {
                 useHandCursor: true,
             });
 
-            // 注册统一的交互事件
+            // 注册按下事件（在容器上）
             this.container.on("pointerdown", (pointer: Phaser.Input.Pointer) =>
                 this.handlePointerDown(pointer),
             );
-            this.container.on("pointermove", (pointer: Phaser.Input.Pointer) =>
-                this.handlePointerMove(pointer),
-            );
-            this.container.on("pointerup", (pointer: Phaser.Input.Pointer) =>
-                this.handlePointerUp(pointer),
-            );
-            // this.container.on(
-            //     "pointerupoutside",
-            //     (pointer: Phaser.Input.Pointer) =>
-            //         this.handlePointerUp(pointer),
-            // );
+            // pointermove 和 pointerup 在拖拽开始时注册到场景级别
         }
 
         return this.container;
@@ -259,6 +253,10 @@ export class PlayingCard {
         this.originalX = this.container.x;
         this.originalY = this.container.y;
 
+        // 初始化目标位置为当前位置，防止拖拽开始时瞬移到左上角
+        this.targetX = this.container.x;
+        this.targetY = this.container.y;
+
         // 如果启用了拖拽
         if (this.enableDrag) {
             // 如果没有点击模式，则直接触发拖拽（无需等待长按）
@@ -303,10 +301,10 @@ export class PlayingCard {
             }
         }
 
-        // 如果正在拖拽，更新位置
+        // 如果正在拖拽，更新目标位置（平滑跟随在 updateDragPosition 中处理）
         if (this.isLongPressTriggered) {
-            this.container.x = pointer.x - this.dragOffsetX;
-            this.container.y = pointer.y - this.dragOffsetY;
+            this.targetX = pointer.x - this.dragOffsetX;
+            this.targetY = pointer.y - this.dragOffsetY;
         }
     }
 
@@ -323,6 +321,13 @@ export class PlayingCard {
         // 如果已触发长按拖拽
         if (this.isLongPressTriggered) {
             this.isLongPressTriggered = false;
+
+            // 移除场景级别的指针事件监听器
+            this.scene.input.off("pointermove", this.handlePointerMove, this);
+            this.scene.input.off("pointerup", this.handlePointerUp, this);
+
+            // 移除场景 update 事件
+            this.scene.events.off("update", this.updateDragPosition, this);
 
             const currentX = this.container.x;
             const currentY = this.container.y;
@@ -357,13 +362,16 @@ export class PlayingCard {
     private snapBackToOriginal(): void {
         if (!this.container || !this.scene) return;
 
-        // 使用动画回弹到原始位置
+        // 生成随机抖动序列
+        const shakeRotation = this.generateRandomShake(5, 4);
+
+        // 使用动画回弹到原始位置，同时抖动和缩放
         this.scene.tweens.add({
             targets: this.container,
             x: this.originalX,
             y: this.originalY,
             scale: this.scale,
-            rotation: 0,
+            rotation: shakeRotation,
             duration: 200,
             ease: "Back.easeOut",
             onComplete: () => {
@@ -379,12 +387,16 @@ export class PlayingCard {
     private snapToPosition(x: number, y: number): void {
         if (!this.container || !this.scene) return;
 
-        // 使用动画吸附到指定位置
+        // 生成随机抖动序列
+        const shakeRotation = this.generateRandomShake(5, 4);
+
+        // 使用动画吸附到指定位置，同时抖动和缩放
         this.scene.tweens.add({
             targets: this.container,
             x: x,
             y: y,
             scale: this.scale,
+            rotation: shakeRotation,
             duration: 150,
             ease: "Back.easeOut",
             onComplete: () => {
@@ -392,8 +404,6 @@ export class PlayingCard {
                 this.container?.setDepth(0);
                 // 触发拖拽结束回调（吸附到指定位置）
                 this.onDragEndCallback?.(this, x, y);
-                // 添加放下时的抖动效果
-                this.addDropShake();
             },
         });
     }
@@ -413,6 +423,52 @@ export class PlayingCard {
 
         // 触发拖拽开始回调
         this.onDragStartCallback?.(this);
+
+        // 注册场景级别的指针事件，确保手指移出卡牌范围时仍能跟踪
+        this.scene.input.on("pointermove", this.handlePointerMove, this);
+        this.scene.input.on("pointerup", this.handlePointerUp, this);
+
+        // 注册场景 update 事件，实现平滑跟随和倾斜效果
+        this.scene.events.on("update", this.updateDragPosition, this);
+    }
+
+    /** 每帧更新拖拽位置和旋转（实现平滑跟随和倾斜效果） */
+    private updateDragPosition(): void {
+        if (!this.container || !this.isLongPressTriggered) return;
+
+        // 使用 lerp 实现平滑跟随
+        const newX = Phaser.Math.Linear(
+            this.container.x,
+            this.targetX,
+            this.smoothFactor,
+        );
+        const newY = Phaser.Math.Linear(
+            this.container.y,
+            this.targetY,
+            this.smoothFactor,
+        );
+
+        // 计算水平速度（用于倾斜效果）
+        const velocityX = newX - this.container.x;
+
+        // 根据水平移动速度计算倾斜角度（手指在右侧向右旋转，左侧向左旋转）
+        const targetRotation = Phaser.Math.Clamp(
+            velocityX * 0.5, // 速度乘以系数得到倾斜角度
+            -this.maxTiltAngle,
+            this.maxTiltAngle,
+        );
+
+        // 使用 lerp 平滑旋转
+        const newRotation = Phaser.Math.Linear(
+            this.container.rotation,
+            targetRotation,
+            this.smoothFactor,
+        );
+
+        // 应用位置和旋转
+        this.container.x = newX;
+        this.container.y = newY;
+        this.container.rotation = newRotation;
     }
 
     /** 生成随机抖动旋转序列 */
