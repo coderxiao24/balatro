@@ -21,9 +21,9 @@
         "typescript"
     ],
     "scripts": {
-        "dev": "vite --config vite/config.dev.mjs",
-        "dev:prod": "vite --mode production --config vite/config.dev.mjs",
-        "build": "vite build --mode production --config vite/config.prod.mjs",
+        "dev": "vite",
+        "dev:prod": "vite --mode production",
+        "build": "vite build --mode production",
         "android:build": "npm run build && cross-env CAPACITOR_ENV=production npx cap sync android && npx cap open android",
         "android:debug": "cross-env CAPACITOR_ENV=development npx cap sync android && npx cap open android"
     },

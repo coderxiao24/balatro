@@ -1,3 +1,4 @@
+import { PLAYING_CARDS } from "@/config/index";
 import { Preferences } from "@capacitor/preferences";
 import { StatusBar, Style } from "@capacitor/status-bar";
 export const preferences = {
@@ -48,3 +49,8 @@ export const setupStatusBar = async () => {
         console.log("StatusBar not available (running in browser)");
     }
 };
+
+/** 根据 key（如 "Hearts_Ace"）快速查找一张牌 */
+export function getPokerCard(key: string) {
+    return PLAYING_CARDS[key];
+}

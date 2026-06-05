@@ -13,8 +13,8 @@
  */
 
 import { EventBus } from "@/game/EventBus";
-import scenesBGMMap from "@/game/data/scenesBGM";
-import { sceneNames } from "@/game/data/types/scenesName";
+import { scenesBGMMap } from "@/config";
+import { sceneNames } from "@/types";
 
 export interface AudioOptions {
     volume?: number;

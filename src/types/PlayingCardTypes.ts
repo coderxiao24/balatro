@@ -7,7 +7,7 @@ export enum Suit {
 }
 
 // 扑克牌点数枚举
-export enum CardValue {
+export enum PlayingCardValue {
     Two = "2",
     Three = "3",
     Four = "4",
@@ -24,9 +24,18 @@ export enum CardValue {
 }
 
 // 一张扑克牌的全部数据
-export interface PokerCard {
+export interface PlayingCard {
     name: string;
-    value: CardValue;
+    value: PlayingCardValue;
     suit: Suit;
     frame: number;
 }
+
+/** 点击交互模式 */
+export enum PlayingCardClickMode {
+    none = "none",
+    flip = "flip",
+    select = "select",
+}
+
+export type PlayingCardDict = Record<string, PlayingCard>;

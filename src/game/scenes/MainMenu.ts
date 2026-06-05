@@ -2,10 +2,11 @@ import { GameObjects, Geom } from "phaser";
 
 import { BalatroSplash } from "../shaders/BalatroSplash";
 import { calcPx, calcScale } from "../Constants";
-import { ClickMode, PlayingCard } from "../data/PlayingCard";
-import { CardValue, Suit } from "../data/types/card";
+import { PlayingCard } from "@/game/entities/PlayingCard";
+import { PlayingCardValue, Suit } from "@/types";
 import { BaseScene } from "./BaseScene";
 import { AudioManager } from "@/game/manager/AudioManager";
+import { PlayingCardClickMode } from "@/types";
 
 export class MainMenu extends BaseScene {
     background: GameObjects.Image;
@@ -41,12 +42,12 @@ export class MainMenu extends BaseScene {
         this.logo = this.add.image(width / 2, calcPx(width, 460), "balatro");
 
         this.logo.setScale(calcScale(width, this.logo.height, 863));
-        const A = new PlayingCard(Suit.Spades, CardValue.Ace);
+        const A = new PlayingCard(Suit.Spades, PlayingCardValue.Ace);
         A.addToScene(
             this,
             width / 2,
             calcPx(width, 460),
-            ClickMode.select,
+            PlayingCardClickMode.select,
             true,
         );
 

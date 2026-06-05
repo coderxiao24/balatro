@@ -1,51 +1,12 @@
 import Phaser from "phaser";
-import { Suit, CardValue } from "./types/card";
-
-/** 花色的行索引（用于计算 frame） */
-const SUIT_ROW: Record<Suit, number> = {
-    [Suit.Hearts]: 0,
-    [Suit.Clubs]: 1,
-    [Suit.Diamonds]: 2,
-    [Suit.Spades]: 3,
-};
-
-/** CardValue 在行内的列索引 */
-const VALUE_COL: Record<CardValue, number> = {
-    [CardValue.Two]: 0,
-    [CardValue.Three]: 1,
-    [CardValue.Four]: 2,
-    [CardValue.Five]: 3,
-    [CardValue.Six]: 4,
-    [CardValue.Seven]: 5,
-    [CardValue.Eight]: 6,
-    [CardValue.Nine]: 7,
-    [CardValue.Ten]: 8,
-    [CardValue.Jack]: 9,
-    [CardValue.Queen]: 10,
-    [CardValue.King]: 11,
-    [CardValue.Ace]: 12,
-};
-
-/** 所有 Suit 枚举值数组（用于随机） */
-const ALL_SUITS = Object.values(Suit);
-
-/** 所有 CardValue 枚举值数组（用于随机） */
-const ALL_VALUES = Object.values(CardValue);
-
-/** 花色英文名 */
-const SUIT_NAME: Record<Suit, string> = {
-    [Suit.Hearts]: "Hearts",
-    [Suit.Clubs]: "Clubs",
-    [Suit.Diamonds]: "Diamonds",
-    [Suit.Spades]: "Spades",
-};
-
-/** 点击交互模式 */
-export enum ClickMode {
-    none = "none",
-    flip = "flip",
-    select = "select",
-}
+import { Suit, PlayingCardValue, PlayingCardClickMode } from "@/types";
+import {
+    PLAYING_CARD_ALL_SUITS,
+    PLAYING_CARD_ALL_VALUES,
+    PLAYING_CARD_SUIT_ROW,
+    PLAYING_CARD_VALUE_COL,
+    PLAYING_CARD_SUIT_NAME,
+} from "@/config";
 
 /** 选中时向上位移的像素值 */
 const SELECT_OFFSET_Y = -30;
@@ -57,7 +18,7 @@ const SELECT_OFFSET_Y = -30;
  */
 export class PlayingCard {
     readonly suit: Suit;
-    readonly value: CardValue;
+    readonly value: PlayingCardValue;
     readonly frame: number;
     readonly name: string;
     /** 是否正面朝上（可读写，不会带动画，需配合 flip() 或直接更新后用 refreshFace() 同步） */
@@ -69,7 +30,7 @@ export class PlayingCard {
     private scene: Phaser.Scene | null = null;
     private base: Phaser.GameObjects.Image | null = null;
     private overlay: Phaser.GameObjects.Image | null = null;
-    private clickMode: ClickMode = ClickMode.none;
+    private clickMode: PlayingCardClickMode = PlayingCardClickMode.none;
     private selected = false;
 
     // 长按拖拽相关属性
@@ -86,13 +47,21 @@ export class PlayingCard {
         | ((card: PlayingCard, x: number, y: number) => void)
         | null = null;
 
-    constructor(suit?: Suit, value?: CardValue, faceUp = true) {
+    constructor(suit?: Suit, value?: PlayingCardValue, faceUp = true) {
         this.suit =
-            suit ?? ALL_SUITS[Math.floor(Math.random() * ALL_SUITS.length)];
+            suit ??
+            PLAYING_CARD_ALL_SUITS[
+                Math.floor(Math.random() * PLAYING_CARD_ALL_SUITS.length)
+            ];
         this.value =
-            value ?? ALL_VALUES[Math.floor(Math.random() * ALL_VALUES.length)];
-        this.frame = SUIT_ROW[this.suit] * 13 + VALUE_COL[this.value];
-        this.name = `${this.value} of ${SUIT_NAME[this.suit]}`;
+            value ??
+            PLAYING_CARD_ALL_VALUES[
+                Math.floor(Math.random() * PLAYING_CARD_ALL_VALUES.length)
+            ];
+        this.frame =
+            PLAYING_CARD_SUIT_ROW[this.suit] * 13 +
+            PLAYING_CARD_VALUE_COL[this.value];
+        this.name = `${this.value} of ${PLAYING_CARD_SUIT_NAME[this.suit]}`;
         this.faceUp = faceUp;
     }
 
@@ -108,7 +77,7 @@ export class PlayingCard {
         scene: Phaser.Scene,
         x: number,
         y: number,
-        clickMode: ClickMode = ClickMode.none,
+        clickMode: PlayingCardClickMode = PlayingCardClickMode.none,
         enableDrag = false,
     ): Phaser.GameObjects.Container {
         this.scene = scene;
@@ -123,7 +92,7 @@ export class PlayingCard {
 
         this.container = scene.add.container(x, y, [this.base, this.overlay]);
 
-        if (clickMode !== ClickMode.none || enableDrag) {
+        if (clickMode !== PlayingCardClickMode.none || enableDrag) {
             this.container.setSize(
                 this.base.displayWidth,
                 this.base.displayHeight,
@@ -305,7 +274,10 @@ export class PlayingCard {
                 }
 
                 // 如果启用了拖拽且点击模式为select，触发拖拽
-                if (this.enableDrag && this.clickMode === ClickMode.select) {
+                if (
+                    this.enableDrag &&
+                    this.clickMode === PlayingCardClickMode.select
+                ) {
                     this.triggerLongPress(pointer);
                 }
             }
@@ -345,7 +317,7 @@ export class PlayingCard {
             this.container.setDepth(0);
         } else {
             // 未触发拖拽，视为点击（仅在启用click模式时）
-            if (this.clickMode !== ClickMode.none) {
+            if (this.clickMode !== PlayingCardClickMode.none) {
                 this.handleClick();
             }
         }

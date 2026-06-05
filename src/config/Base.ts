@@ -1,6 +1,7 @@
 import { AudioManager } from "@/game/manager/AudioManager";
-import { sceneNames } from "./types/scenesName";
-const scenesBGMMap: Record<sceneNames, () => void> = {
+import { sceneNames } from "@/types";
+
+export const scenesBGMMap: Record<sceneNames, () => void> = {
     [sceneNames.MainMenu]: () => {
         AudioManager.getInstance().playMusic("MainMenu", "music1", {
             volume: 0.6,
@@ -14,4 +15,3 @@ const scenesBGMMap: Record<sceneNames, () => void> = {
     [sceneNames.Preloader]: () => {},
     [sceneNames.Splash]: () => {},
 };
-export default scenesBGMMap;
