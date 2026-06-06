@@ -3,10 +3,14 @@ import { GameObjects, Geom } from "phaser";
 import { BalatroSplash } from "../shaders/BalatroSplash";
 import { calcPx, calcScale } from "../Constants";
 import { PlayingCard } from "@/game/entities/PlayingCard";
-import { PlayingCardValue, Suit } from "@/types";
+import { BlindsType, Decks, PlayingCardValue, Stakes, Suit } from "@/types";
 import { BaseScene } from "./BaseScene";
 import { AudioManager } from "@/game/manager/AudioManager";
 import { PlayingCardClickMode } from "@/types";
+import { preferences } from "@/utils";
+import { cloneDeep } from "lodash";
+
+import { ALL_PLAYING_CARDS } from "@/config";
 
 export class MainMenu extends BaseScene {
     background: GameObjects.Image;
@@ -127,7 +131,16 @@ export class MainMenu extends BaseScene {
             0x449bf8,
             "开始游戏",
             calcPx(width, 70),
-            () => {
+            async () => {
+                const data = {
+                    deck: Decks.RedDeck,
+                    stake: Stakes.WhiteStake,
+                    ante: 1,
+                    blindsType: BlindsType.SmallBlind,
+                    playingCard: cloneDeep(ALL_PLAYING_CARDS),
+                };
+
+                await preferences.setItem("gameData", data);
                 this.scene.start("Game");
             },
         );

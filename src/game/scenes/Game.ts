@@ -1,3 +1,4 @@
+import { preferences } from "@/utils";
 import { BaseScene } from "./BaseScene";
 
 export class Game extends BaseScene {
@@ -15,7 +16,8 @@ export class Game extends BaseScene {
         this.load.glsl("waveProcess", "assets/shaders/waveProcess.glsl");
     }
 
-    create() {
+    async create() {
+        console.log(666, await preferences.getItem("gameData"));
         const { width, height } = this.cameras.main;
 
         const image = this.add
