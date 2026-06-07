@@ -86,8 +86,10 @@ export class MainMenu extends BaseScene {
                     deck: Decks.RedDeck,
                     stake: Stakes.WhiteStake,
                     ante: 1,
-                    round: 1,
+                    round: 0,
                     playingCard: cloneDeep(ALL_PLAYING_CARDS),
+                    historyBlinds: [],
+                    handLimit: 8,
                 };
 
                 await preferences.setItem("gameData", data);

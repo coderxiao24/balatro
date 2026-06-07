@@ -12,6 +12,7 @@ import { AudioManager } from "../manager/AudioManager";
  * @param text 按钮的文本
  * @param fontSize 按钮的字体大小
  * @param onClick 按钮点击事件
+ * @param disabled 是否禁用按钮
  */
 export const createButton = (
     scene: Phaser.Scene,
@@ -23,22 +24,33 @@ export const createButton = (
     text: string,
     fontSize: number,
     onClick: () => void,
+    disabled: boolean = false,
 ) => {
     const container = scene.add.container(x, y);
     const { width } = scene.cameras.main;
+
+    // 禁用状态的颜色
+    const btnColor = disabled ? 0x55666f : color;
+    const textColor = disabled ? "#607079" : "#ffffff";
+
     const btn = scene.add
-        .rectangle(0, 0, w, h, color)
+        .rectangle(0, 0, w, h, btnColor)
         .setRounded(calcPx(width, 12));
 
     const label = scene.add
         .text(0, 0, text, {
             fontSize: `${fontSize}px`,
-            color: "#ffffff",
+            color: textColor,
             fontFamily: "NotoSansSC",
         })
         .setOrigin(0.5);
 
     container.add([btn, label]);
+
+    // 禁用状态下不添加交互事件
+    if (disabled) {
+        return container;
+    }
 
     container.setInteractive(
         new Geom.Rectangle(-w / 2, -h / 2, w, h),

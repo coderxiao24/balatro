@@ -157,3 +157,25 @@ export interface AnteScore {
     [Stakes.GreenStake]: BigNumber;
     [Stakes.PurpleStake]: BigNumber;
 }
+
+/**
+ *   盲注卡片ui的类型枚举
+ */
+export enum BlindCardsType {
+    /**
+     *  @name 当前
+     */
+    Active = "Active",
+    /**
+     *  @name 已跳过
+     */
+    Skip = "Skip",
+    /**
+     *  @name 已通过
+     */
+    Pass = "Pass",
+    /**
+     *  @name 下一回合
+     */
+    Next = "Next",
+}

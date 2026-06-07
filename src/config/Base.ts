@@ -1,5 +1,12 @@
 import { AudioManager } from "@/game/manager/AudioManager";
-import { AnteScore, sceneNames, Stakes } from "@/types";
+import {
+    AnteScore,
+    BlindCardsType,
+    Decks,
+    PlayingCard,
+    sceneNames,
+    Stakes,
+} from "@/types";
 import BigNumber from "bignumber.js";
 
 export const scenesBGMMap: Record<sceneNames, () => void> = {
@@ -152,3 +159,25 @@ const anteScoreArr: AnteScore[] = [
         [Stakes.PurpleStake]: new BigNumber("8.80E+87"),
     },
 ];
+
+export const blindCardsBtnTextMap = {
+    [BlindCardsType.Active]: "选择",
+    [BlindCardsType.Next]: "下一回合",
+    [BlindCardsType.Pass]: "已被击败",
+    [BlindCardsType.Skip]: "跳过",
+};
+
+export interface BlindCardData {
+    CardsType: BlindCardsType;
+    [key: string]: any;
+}
+
+export interface GameData {
+    deck: Decks;
+    stake: Stakes;
+    ante: number;
+    round: number;
+    playingCard: PlayingCard[];
+    historyBlinds: BlindCardData[];
+    handLimit: number;
+}

@@ -1,11 +1,15 @@
-import { BlindsType } from "@/types";
+import { BlindCardsType, BlindsType } from "@/types";
 import { calcPx } from "@/utils";
 import { GameObjects } from "phaser";
 import { createButton } from ".";
+import { blindCardsBtnTextMap } from "@/config";
 
 export default class BlindCard extends GameObjects.Container {
-    public container: GameObjects.Container;
-    public active: boolean;
+    container: GameObjects.Container;
+    CardsType: BlindCardsType;
+
+    chooseBtnClick: () => void;
+
     private currentScene: Phaser.Scene;
 
     private cameraWidth: number;
@@ -18,15 +22,19 @@ export default class BlindCard extends GameObjects.Container {
     constructor({
         scene,
         blindsType,
-        active = false,
+        CardsType = BlindCardsType.Next,
+        chooseBtnClick = () => {},
     }: {
         scene: Phaser.Scene;
         blindsType: BlindsType;
-        active?: boolean;
+        CardsType?: BlindCardsType;
+        chooseBtnClick?: () => void;
     }) {
         super(scene);
         this.currentScene = scene;
-        this.active = active;
+        this.CardsType = CardsType;
+        this.chooseBtnClick = chooseBtnClick;
+
         this.cameraWidth = scene.cameras.main.width;
         this.cameraHeight = scene.cameras.main.height;
         this.cardWidth = calcPx(this.cameraWidth, 360);
@@ -47,7 +55,9 @@ export default class BlindCard extends GameObjects.Container {
         const containerY =
             this.cameraHeight -
             this.cardHeight / 2 +
-            (this.active ? 0 : calcPx(this.cameraWidth, 72));
+            (this.CardsType !== BlindCardsType.Active
+                ? calcPx(this.cameraWidth, 72)
+                : 0);
 
         this.container = this.currentScene.add.container(
             containerX,
@@ -63,9 +73,10 @@ export default class BlindCard extends GameObjects.Container {
             calcPx(this.cameraWidth, 260),
             calcPx(this.cameraWidth, 116),
             0xfd9a10,
-            "选择",
+            blindCardsBtnTextMap[this.CardsType],
             calcPx(this.cameraWidth, 50),
-            () => {},
+            this.chooseBtnClick,
+            this.CardsType !== BlindCardsType.Active,
         );
         this.container.add([chooseBtn]);
         const groupBg = this.currentScene.add.rectangle(
@@ -84,6 +95,22 @@ export default class BlindCard extends GameObjects.Container {
             duration: 200,
             ease: "Back.easeOut",
             onComplete: () => {},
+        });
+    }
+
+    // 隐藏
+    async hide() {
+        return new Promise<void>((resolve, reject) => {
+            this.currentScene.tweens.add({
+                targets: this.container,
+                y: this.cameraHeight + this.cardHeight / 2,
+                duration: 200,
+                ease: "Back.easeOut",
+                onComplete: () => {
+                    this.container.destroy();
+                    resolve();
+                },
+            });
         });
     }
 }
