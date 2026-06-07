@@ -1,58 +1,36 @@
 import { preferences } from "@/utils";
 import { BaseScene } from "./BaseScene";
+import BlindCard from "../ui/BlindCard";
+import { BlindsType } from "@/types";
 
 export class Game extends BaseScene {
-    private _shader: any;
-
     constructor() {
         super("Game");
     }
 
-    preload() {
-        this.load.glsl(
-            "perlinNoiseFunction",
-            "assets/shaders/perlinNoiseFunction.glsl",
-        );
-        this.load.glsl("waveProcess", "assets/shaders/waveProcess.glsl");
-    }
+    preload() {}
 
     async create() {
-        console.log(666, await preferences.getItem("gameData"));
         const { width, height } = this.cameras.main;
+        const gameData = await preferences.getItem("gameData");
 
-        const image = this.add
-            .image(width / 2, height / 2, "Jokers", 0)
-            .enableFilters();
-
-        const shaderConfig = {
-            name: "Noise",
-
-            shaderAdditions: [
-                {
-                    name: "PerlinNoise",
-                    additions: {
-                        fragmentHeader: this.cache.shader.get(
-                            "perlinNoiseFunction",
-                        ).glsl,
-                        fragmentProcess:
-                            this.cache.shader.get("waveProcess").glsl,
-                    },
-                },
-            ],
-            setupUniforms: (setUniform: (name: string, value: any) => void) => {
-                setUniform("time", (this.game.loop.time % 1000000) / 500);
-            },
-        };
-
-        this._shader = this.add.shader(
-            shaderConfig,
-            image.width / 2,
-            image.height / 2,
-            image.width,
-            image.height,
-        );
-        this._shader.setRenderToTexture("ooze");
-
-        image.filters?.internal.addDisplacement("ooze", 0, 0.5);
+        const smallBlindCard = new BlindCard({
+            scene: this,
+            blindsType: BlindsType.SmallBlind,
+            active: gameData.round % 3 === 1,
+        });
+        const bigBlindCard = new BlindCard({
+            scene: this,
+            blindsType: BlindsType.BigBlind,
+            active: gameData.round % 3 === 2,
+        });
+        const bossBlindCard = new BlindCard({
+            scene: this,
+            blindsType: BlindsType.BossBlind,
+            active: gameData.round % 3 === 0,
+        });
+        smallBlindCard.addToScene();
+        bigBlindCard.addToScene();
+        bossBlindCard.addToScene();
     }
 }

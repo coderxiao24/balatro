@@ -1,6 +1,6 @@
 import * as Phaser from "phaser";
 import { BalatroSplash } from "../shaders/BalatroSplash";
-import { calcScale } from "../Constants";
+import { calcScale } from "@/utils";
 import { AudioManager } from "@/game/manager/AudioManager";
 import { BaseScene } from "./BaseScene";
 

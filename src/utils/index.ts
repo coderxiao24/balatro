@@ -54,3 +54,35 @@ export const setupStatusBar = async () => {
 export function getPokerCard(key: string) {
     return PLAYING_CARDS[key];
 }
+
+/**
+ * 计算缩放比：将当前宽度缩放到目标宽度在设计稿（2670）下应占屏幕的比例
+ * @param screenTotalWidth 屏幕总宽度（实际可用宽度）
+ * @param currentWidth     当前元素/区域的宽度
+ * @param targetWidth      设计稿中的目标宽度（默认 2670）
+ * @returns 缩放比
+ */
+export function calcScale(
+    screenTotalWidth: number,
+    currentWidth: number,
+    targetWidth: number = 2670,
+): number {
+    if (currentWidth <= 0 || targetWidth <= 0) return 1;
+    return (screenTotalWidth / 2670) * (targetWidth / currentWidth);
+}
+
+/**
+ * 根据设计稿上的距离/尺寸，计算实际屏幕上对应的像素值
+ * @param screenTotalWidth 屏幕总宽度（实际可用宽度）
+ * @param designValue      设计稿上的距离或尺寸值
+ * @param designTotalWidth 设计稿总宽度（默认 2670）
+ * @returns 实际屏幕上的像素值
+ */
+export function calcPx(
+    screenTotalWidth: number,
+    designValue: number,
+    designTotalWidth: number = 2670,
+): number {
+    if (designTotalWidth <= 0) return 0;
+    return screenTotalWidth * (designValue / designTotalWidth);
+}

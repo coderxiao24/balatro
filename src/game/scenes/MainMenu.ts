@@ -1,7 +1,7 @@
 import { GameObjects, Geom } from "phaser";
 
 import { BalatroSplash } from "../shaders/BalatroSplash";
-import { calcPx, calcScale } from "../Constants";
+import { calcPx, calcScale } from "@/utils";
 import { PlayingCard } from "@/game/entities/PlayingCard";
 import { BlindsType, Decks, PlayingCardValue, Stakes, Suit } from "@/types";
 import { BaseScene } from "./BaseScene";
@@ -11,6 +11,7 @@ import { preferences } from "@/utils";
 import { cloneDeep } from "lodash";
 
 import { ALL_PLAYING_CARDS } from "@/config";
+import { createButton } from "../ui";
 
 export class MainMenu extends BaseScene {
     background: GameObjects.Image;
@@ -65,58 +66,6 @@ export class MainMenu extends BaseScene {
             canDrop: () => false,
         });
 
-        // 创建按钮组（每个按钮+文字放在一个容器中）
-        const createButton = (
-            x: number,
-            y: number,
-            w: number,
-            h: number,
-            color: number,
-            text: string,
-            fontSize: number,
-            onClick: () => void,
-        ) => {
-            const container = this.add.container(x, y);
-
-            const btn = this.add
-                .rectangle(0, 0, w, h, color)
-                .setRounded(calcPx(width, 12));
-
-            const label = this.add
-                .text(0, 0, text, {
-                    fontSize: `${fontSize}px`,
-                    color: "#ffffff",
-                    fontFamily: "NotoSansSC",
-                })
-                .setOrigin(0.5);
-
-            container.add([btn, label]);
-
-            container.setInteractive(
-                new Geom.Rectangle(-w / 2, -h / 2, w, h),
-                Geom.Rectangle.Contains,
-            );
-
-            container.on("pointerover", () => {
-                container.y = calcPx(width, 12);
-                container.setAlpha(0.5);
-            });
-            container.on("pointerout", () => {
-                container.y = 0;
-                container.setAlpha(1);
-            });
-
-            container.on("pointerdown", () => {
-                AudioManager.getInstance().playSound(this.scene.key, "button", {
-                    volume: 0.7,
-                    rate: 0.8,
-                });
-                onClick();
-            });
-
-            return container;
-        };
-
         const targetY = height - calcPx(width, 88) - calcPx(width, 198) / 2;
 
         this.buttonGroup = this.add.container(width / 2, targetY);
@@ -124,6 +73,7 @@ export class MainMenu extends BaseScene {
         const spacing = calcPx(width, 20);
 
         const startGameBtn = createButton(
+            this,
             -(calcPx(width, 352) / 2 + calcPx(width, 256) / 2 + spacing),
             0,
             calcPx(width, 352),
@@ -136,7 +86,7 @@ export class MainMenu extends BaseScene {
                     deck: Decks.RedDeck,
                     stake: Stakes.WhiteStake,
                     ante: 1,
-                    blindsType: BlindsType.SmallBlind,
+                    round: 1,
                     playingCard: cloneDeep(ALL_PLAYING_CARDS),
                 };
 
@@ -146,6 +96,7 @@ export class MainMenu extends BaseScene {
         );
 
         const optionBtn = createButton(
+            this,
             0,
             0,
             calcPx(width, 256),
@@ -159,6 +110,7 @@ export class MainMenu extends BaseScene {
         );
 
         const favoriteBtn = createButton(
+            this,
             calcPx(width, 352) / 2 + calcPx(width, 256) / 2 + spacing,
             0,
             calcPx(width, 352),
