@@ -238,7 +238,6 @@ export class PlayingCard {
     /** 处理指针按下 */
     private handlePointerDown(pointer: Phaser.Input.Pointer): void {
         if (!this.container || !this.scene) return;
-
         // 取消之前的计时器
         if (this.longPressTimer) {
             this.longPressTimer.destroy();
@@ -257,8 +256,12 @@ export class PlayingCard {
         this.targetX = this.container.x;
         this.targetY = this.container.y;
 
+        this.scene.input.on("pointerup", this.handlePointerUp, this);
         // 如果启用了拖拽
         if (this.enableDrag) {
+            // 注册场景级别的指针事件，确保手指移出卡牌范围时仍能跟踪
+            this.scene.input.on("pointermove", this.handlePointerMove, this);
+
             // 如果没有点击模式，则直接触发拖拽（无需等待长按）
             if (this.clickMode === PlayingCardClickMode.none) {
                 this.triggerLongPress(pointer);
@@ -312,19 +315,18 @@ export class PlayingCard {
     private handlePointerUp(pointer: Phaser.Input.Pointer): void {
         if (!this.container || !this.scene) return;
 
+        console.log(666);
         // 取消长按计时器
         if (this.longPressTimer) {
             this.longPressTimer.destroy();
             this.longPressTimer = null;
         }
-
+        // 移除场景级别的指针事件监听器
+        this.scene.input.off("pointermove", this.handlePointerMove, this);
+        this.scene.input.off("pointerup", this.handlePointerUp, this);
         // 如果已触发长按拖拽
         if (this.isLongPressTriggered) {
             this.isLongPressTriggered = false;
-
-            // 移除场景级别的指针事件监听器
-            this.scene.input.off("pointermove", this.handlePointerMove, this);
-            this.scene.input.off("pointerup", this.handlePointerUp, this);
 
             // 移除场景 update 事件
             this.scene.events.off("update", this.updateDragPosition, this);
@@ -423,10 +425,6 @@ export class PlayingCard {
 
         // 触发拖拽开始回调
         this.onDragStartCallback?.(this);
-
-        // 注册场景级别的指针事件，确保手指移出卡牌范围时仍能跟踪
-        this.scene.input.on("pointermove", this.handlePointerMove, this);
-        this.scene.input.on("pointerup", this.handlePointerUp, this);
 
         // 注册场景 update 事件，实现平滑跟随和倾斜效果
         this.scene.events.on("update", this.updateDragPosition, this);

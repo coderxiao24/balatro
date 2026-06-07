@@ -123,13 +123,25 @@ export class Game extends BaseScene {
                         itemPlayingCard.container.displayWidth / 2 +
                         (idx *
                             (playCardsContainerWidth -
-                                itemPlayingCard.container.displayWidth / 2)) /
-                            this.gameData.handLimit;
+                                itemPlayingCard.container.displayWidth)) /
+                            (this.gameData.handLimit - 1);
                 }
-
                 itemPlayingCard.setDragCallbacks({
+                    onDragStart: () => {
+                        this.playCardsContainer.moveTo(
+                            itemPlayingCard.container!,
+                            this.playCardsContainer.getAll().length - 1,
+                        );
+                    },
+                    onDragEnd: () => {
+                        this.playCardsContainer.moveTo(
+                            itemPlayingCard.container!,
+                            idx + 1,
+                        );
+                    },
                     canDrop: () => false,
                 });
+
                 return itemPlayingCard.container!;
             });
 
@@ -143,7 +155,7 @@ export class Game extends BaseScene {
         //     x: this.cameraWidth / 2,
         //     y: this.cameraHeight / 2,
         // });
-        console.log(this.handPlayingCards, this.tempPlayingCards);
+
         await preferences.setItem("gameData", this.gameData);
     }
 }
