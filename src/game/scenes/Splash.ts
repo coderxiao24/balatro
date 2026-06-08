@@ -1,5 +1,5 @@
 import * as Phaser from "phaser";
-import { BalatroSplash } from "../shaders/BalatroSplash";
+import { BalatroSplash } from "@/game/entities/shaders/BalatroSplash";
 import { calcScale } from "@/utils";
 import { AudioManager } from "@/game/manager/AudioManager";
 import { BaseScene } from "./BaseScene";

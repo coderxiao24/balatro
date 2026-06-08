@@ -7,6 +7,7 @@ import Random from "@xiaokaixuan/random";
 import { cloneDeep } from "lodash";
 import { PlayingCard } from "../entities/PlayingCard";
 import { Actions } from "phaser";
+import { BalatroBackground } from "@/game/entities/shaders/BalatroBackground";
 export class Game extends BaseScene {
     bigBlindCard: BlindCard;
     smallBlindCard: BlindCard;
@@ -17,6 +18,7 @@ export class Game extends BaseScene {
     playCardsContainer: Phaser.GameObjects.Container;
     tempPlayingCards: import("@/types").PlayingCard[];
     handPlayingCards: Phaser.GameObjects.Container[];
+    private bgShader: BalatroBackground;
     constructor() {
         super("Game");
     }
@@ -27,6 +29,22 @@ export class Game extends BaseScene {
         this.cameraWidth = this.cameras.main.width;
         this.cameraHeight = this.cameras.main.height;
         this.gameData = await preferences.getItem("gameData");
+
+        this.bgShader = new BalatroBackground(
+            this,
+            this.cameraWidth / 2,
+            this.cameraHeight / 2,
+            this.cameraWidth,
+            this.cameraHeight,
+            {
+                colour1: [0.28, 0.47, 0.41, 1.0], // #48786A - 主色调
+                colour2: [0.41, 0.68, 0.56, 1.0], // #68AE90 - 亮色调
+                colour3: [0.22, 0.38, 0.31, 1.0], // #386050 - 暗色调
+                contrast: 1,
+                spinAmount: 0,
+            },
+        );
+        this.add.existing(this.bgShader);
 
         this.smallBlindCard = new BlindCard({
             scene: this,
@@ -157,5 +175,11 @@ export class Game extends BaseScene {
         // });
 
         await preferences.setItem("gameData", this.gameData);
+    }
+
+    update(_time: number, delta: number): void {
+        if (this.bgShader) {
+            this.bgShader.update(delta);
+        }
     }
 }

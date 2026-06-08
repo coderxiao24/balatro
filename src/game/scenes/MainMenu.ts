@@ -1,6 +1,6 @@
 import { GameObjects, Geom } from "phaser";
 
-import { BalatroSplash } from "../shaders/BalatroSplash";
+import { BalatroSplash } from "@/game/entities/shaders/BalatroSplash";
 import { calcPx, calcScale } from "@/utils";
 import { PlayingCard } from "@/game/entities/PlayingCard";
 import { BlindsType, Decks, PlayingCardValue, Stakes, Suit } from "@/types";

@@ -19,6 +19,7 @@ export class Preloader extends BaseScene {
         });
 
         this.load.glsl("splashFrag", "assets/shaders/splash_phaser.glsl");
+        this.load.glsl("backgroundFrag", "assets/shaders/background_phaser.glsl");
         // 加载 Joker 卡精灵图
         this.load.spritesheet("Jokers", "assets/textures/2x/Jokers.png", {
             frameWidth: 142,
