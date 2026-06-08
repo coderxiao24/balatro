@@ -19,7 +19,10 @@ export class Preloader extends BaseScene {
         });
 
         this.load.glsl("splashFrag", "assets/shaders/splash_phaser.glsl");
-        this.load.glsl("backgroundFrag", "assets/shaders/background_phaser.glsl");
+        this.load.glsl(
+            "backgroundFrag",
+            "assets/shaders/background_phaser.glsl",
+        );
         // 加载 Joker 卡精灵图
         this.load.spritesheet("Jokers", "assets/textures/2x/Jokers.png", {
             frameWidth: 142,
@@ -41,6 +44,7 @@ export class Preloader extends BaseScene {
         this.load.audio("whoosh", "assets/sounds/whoosh.ogg");
         this.load.audio("introPad1", "assets/sounds/introPad1.ogg");
         this.load.audio("splash_buildup", "assets/sounds/splash_buildup.ogg");
+        this.load.audio("cancel", "assets/sounds/cancel.ogg");
     }
 
     create() {

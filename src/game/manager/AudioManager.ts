@@ -5,11 +5,12 @@
  * 1. 完全接管游戏中所有音频的创建、播放、暂停、恢复、停止
  * 2. 监听应用生命周期事件（息屏、后台/前台切换）
  * 3. 进入后台时自动淡出暂停所有音频，回到前台时自动淡入恢复
- * 4. 场景切换时自动清理旧场景的音频资源（无需手动调用）
+ * 4. 场景切换时自动清理旧场景的音效资源（无需手动调用）
  *
  * 音频类型：
- * - BGM（背景音乐）：同一场景同一 key 只有一个实例，后播放的会覆盖先播放的
- * - SFX（音效）：同一场景同一 key 可以有多个实例同时播放
+ * - BGM（背景音乐）：全局共享，同一 key 只有一个实例，后播放的会覆盖先播放的
+ *                     支持 protected 模式，保护的音乐不会被场景切换清理
+ * - SFX（音效）：同一场景同一 key 可以有多个实例同时播放，场景切换时自动清理
  */
 
 import { EventBus } from "@/game/EventBus";
@@ -25,12 +26,14 @@ export interface AudioOptions {
     fadeIn?: number;
     /** 淡出持续时间（毫秒），停止时从当前音量渐变到 0 */
     fadeOut?: number;
+    /** 是否受保护（受保护的 BGM 不会被场景切换清理） */
+    protected?: boolean;
 }
 
 interface ManagedAudio {
     /** Phaser 音频实例 */
     sound: Phaser.Sound.WebAudioSound;
-    /** 所属场景 key */
+    /** 所属场景 key（SFX 使用，BGM 可为空字符串） */
     sceneKey: string;
     /** 音频 key（资源 key） */
     audioKey: string;
@@ -44,6 +47,8 @@ interface ManagedAudio {
     fadeTimer?: ReturnType<typeof setInterval>;
     /** 是否为 BGM（背景音乐） */
     isMusic: boolean;
+    /** 是否受保护（受保护的 BGM 不会被场景切换清理） */
+    isProtected: boolean;
 }
 
 export class AudioManager {
@@ -90,25 +95,24 @@ export class AudioManager {
 
     /**
      * 播放背景音乐
-     * 同一场景同一 key 只会有一个实例，后播放的会覆盖先播放的
-     * @param sceneKey 场景标识（如 "MainMenu"）
+     * 全局共享，同一 key 只有一个实例，后播放的会覆盖先播放的
      * @param audioKey 音频资源 key（如 "music1"）
      * @param options 音频配置
      * @returns 音频实例
      */
     playMusic(
-        sceneKey: string,
         audioKey: string,
         options?: AudioOptions,
     ): Phaser.Sound.WebAudioSound {
         return this.play(
-            sceneKey,
+            "", // BGM 不需要场景 key
             audioKey,
             {
                 ...options,
                 loop: options?.loop ?? true,
             },
             true,
+            options?.protected ?? false,
         );
     }
 
@@ -125,18 +129,23 @@ export class AudioManager {
         audioKey: string,
         options?: AudioOptions,
     ): Phaser.Sound.WebAudioSound {
-        return this.play(sceneKey, audioKey, options, false);
+        return this.play(sceneKey, audioKey, options, false, false);
     }
 
     /**
      * 播放音频（内部方法）
+     * @param sceneKey 场景 key（BGM 传空字符串）
+     * @param audioKey 音频资源 key
+     * @param options 音频配置
      * @param isMusic true=BGM（用固定 key），false=SFX（用唯一 key）
+     * @param isProtected 是否受保护（仅 BGM 有效）
      */
     private play(
         sceneKey: string,
         audioKey: string,
         options?: AudioOptions,
         isMusic?: boolean,
+        isProtected?: boolean,
     ): Phaser.Sound.WebAudioSound {
         if (!this.soundManager) {
             throw new Error("AudioManager not initialized! Call init() first.");
@@ -146,7 +155,7 @@ export class AudioManager {
 
         if (isMusic) {
             // BGM：用固定 key，先淡出旧的（不等待完成）
-            trackKey = `music:${sceneKey}:${audioKey}`;
+            trackKey = `music:${audioKey}`;
             this.stopTrack(trackKey, this.fadeDuration);
         } else {
             // SFX：用唯一 key，每次创建新实例
@@ -175,6 +184,7 @@ export class AudioManager {
             isFadingOut: false,
             isFadingIn: false,
             isMusic: !!isMusic,
+            isProtected: !!isProtected,
         });
 
         // 如果是 SFX，在播放结束后自动清理
@@ -198,14 +208,15 @@ export class AudioManager {
     }
 
     /**
-     * 停止指定场景的指定 BGM
+     * 停止指定的背景音乐
+     * @param audioKey 音频资源 key
      */
-    stopMusic(sceneKey: string, audioKey: string): void {
-        this.stopTrack(`music:${sceneKey}:${audioKey}`);
+    stopMusic(audioKey: string): void {
+        this.stopTrack(`music:${audioKey}`, this.fadeDuration);
     }
 
     /**
-     * 停止指定场景的所有音频（淡出）
+     * 停止指定场景的所有音效（淡出）
      */
     stopAllSounds(sceneKey: string): void {
         this.managedAudios.forEach((audio, trackKey) => {
@@ -216,20 +227,31 @@ export class AudioManager {
     }
 
     /**
-     * 获取指定场景的指定 BGM 实例
+     * 获取指定的背景音乐实例
+     * @param audioKey 音频资源 key
      */
-    getMusic(
-        sceneKey: string,
-        audioKey: string,
-    ): Phaser.Sound.WebAudioSound | undefined {
-        return this.managedAudios.get(`music:${sceneKey}:${audioKey}`)?.sound;
+    getMusic(audioKey: string): Phaser.Sound.WebAudioSound | undefined {
+        return this.managedAudios.get(`music:${audioKey}`)?.sound;
     }
 
     /**
-     * 场景切换时清理该场景的所有音频
+     * 场景切换时清理该场景的所有音效（不清理受保护的 BGM）
      */
     cleanupScene(sceneKey: string): void {
-        this.stopAllSounds(sceneKey);
+        this.managedAudios.forEach((audio, trackKey) => {
+            // 清理条件：
+            // 1. 是该场景的音效（sceneKey 匹配）
+            // 2. 或者是不受保护的 BGM（sceneKey 为空且不受保护）
+            const isSceneSound = audio.sceneKey === sceneKey && !audio.isMusic;
+            const isUnprotectedMusic =
+                audio.isMusic &&
+                !audio.isProtected &&
+                audio.sceneKey === sceneKey;
+
+            if (isSceneSound || isUnprotectedMusic) {
+                this.stopTrack(trackKey, this.fadeDuration);
+            }
+        });
     }
 
     // ==================== 场景事件监听（自动清理） ====================

@@ -11,14 +11,27 @@ import BigNumber from "bignumber.js";
 
 export const scenesBGMMap: Record<sceneNames, () => void> = {
     [sceneNames.MainMenu]: () => {
-        AudioManager.getInstance().playMusic("MainMenu", "music1", {
+        AudioManager.getInstance().playMusic("music1", {
             volume: 0.6,
             rate: 0.7,
             fadeIn: 3 * 1000,
+            protected: true, // 受保护，场景切换时不会被清理
         });
     },
     [sceneNames.Boot]: () => {},
-    [sceneNames.Game]: () => {},
+    [sceneNames.Game]: () => {
+        // 检查 music1 是否已经在播放（从 MainMenu 切换过来）
+        const existingMusic = AudioManager.getInstance().getMusic("music1");
+        if (!existingMusic || !existingMusic.isPlaying) {
+            // 如果没有播放，才开始播放
+            AudioManager.getInstance().playMusic("music1", {
+                volume: 0.6,
+                rate: 0.7,
+                fadeIn: 3 * 1000,
+                protected: true,
+            });
+        }
+    },
     [sceneNames.GameOver]: () => {},
     [sceneNames.Preloader]: () => {},
     [sceneNames.Splash]: () => {},

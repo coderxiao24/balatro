@@ -67,8 +67,7 @@ export const createButton = (
     });
 
     container.on("pointerdown", () => {
-        // @ts-ignore
-        AudioManager.getInstance().playSound(scene.key, "button", {
+        AudioManager.getInstance().playSound(scene.scene.key, "button", {
             volume: 0.7,
             rate: 0.8,
         });

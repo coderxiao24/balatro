@@ -315,7 +315,6 @@ export class PlayingCard {
     private handlePointerUp(pointer: Phaser.Input.Pointer): void {
         if (!this.container || !this.scene) return;
 
-        console.log(666);
         // 取消长按计时器
         if (this.longPressTimer) {
             this.longPressTimer.destroy();

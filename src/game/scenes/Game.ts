@@ -8,6 +8,7 @@ import { cloneDeep } from "lodash";
 import { PlayingCard } from "../entities/PlayingCard";
 import { Actions } from "phaser";
 import { BalatroBackground } from "@/game/entities/shaders/BalatroBackground";
+import { AudioManager } from "../manager/AudioManager";
 export class Game extends BaseScene {
     bigBlindCard: BlindCard;
     smallBlindCard: BlindCard;
@@ -77,6 +78,8 @@ export class Game extends BaseScene {
                     ? BlindCardsType.Active
                     : BlindCardsType.Next,
         });
+
+        AudioManager.getInstance().playSound(this.scene.key, "cancel");
         this.smallBlindCard.addToScene();
         this.bigBlindCard.addToScene();
         this.bossBlindCard.addToScene();
