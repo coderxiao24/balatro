@@ -2,7 +2,8 @@
 #pragma phaserTemplate(shaderName)
 
 #ifdef GL_ES
-precision mediump float;
+// 移动端必须使用 highp，否则噪声/随机函数会因精度不足导致图案完全变形
+precision highp float;
 #endif
 
 uniform float time;

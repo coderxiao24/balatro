@@ -78,7 +78,7 @@ export class Splash extends BaseScene {
         }
 
         // 在 9 秒时触发圆形扩散闪光
-        if (!this.flashTriggered && this.elapsed >= 8) {
+        if (!this.flashTriggered && this.elapsed >= 9) {
             this.flashTriggered = true;
 
             // 触发闪光出场：圆形白光逐渐扩大覆盖全屏
@@ -86,7 +86,7 @@ export class Splash extends BaseScene {
         }
 
         // 在 11 秒时跳转到主菜单
-        if (this.elapsed >= 10) {
+        if (this.elapsed >= 11) {
             this.scene.start("MainMenu");
         }
     }
