@@ -12,10 +12,12 @@ export class Splash extends BaseScene {
 
     private jokerCardEntered = false;
     private jokerCardElapsed = 0;
+    private jokerCardDissolving = false;
+    private jokerCardDissolveElapsed = 0;
 
     private flashTriggered = false;
     private splashBuildupPlayed = false;
-    private jokerCardDissolving = false;
+    jokerCardDissolveShader: Phaser.GameObjects.Shader;
 
     constructor() {
         super("Splash");
@@ -71,35 +73,12 @@ export class Splash extends BaseScene {
         }
 
         // 在 2 秒时播放 splash_buildup 音效
-        if (!this.splashBuildupPlayed && this.elapsed >= 2) {
-            this.splashBuildupPlayed = true;
-            AudioManager.getInstance().playSound(
-                this.scene.key,
-                "splash_buildup",
-                {
-                    volume: 0.7,
-                    rate: 1,
-                },
-            );
-        }
-
-        // 在 6 秒时触发 Joker 卡溶解消失
-        if (!this.jokerCardDissolving && this.elapsed >= 9) {
-            this.jokerCardDissolving = true;
-
-            // Joker 卡溶解消失：淡出 + 缩小到 0
-            if (this.jokerCard) {
-                this.tweens.add({
-                    targets: this.jokerCard,
-                    alpha: 0,
-                    duration: 3 * 1000,
-                    ease: "Sine.easeIn",
-                });
-            }
+        if (this.elapsed >= 3) {
+            this.dissolveJokerCard(dt);
         }
 
         // 在 9 秒时触发圆形扩散闪光
-        if (!this.flashTriggered && this.elapsed >= 11) {
+        if (!this.flashTriggered && this.elapsed >= 8) {
             this.flashTriggered = true;
 
             // 触发闪光出场：圆形白光逐渐扩大覆盖全屏
@@ -107,7 +86,7 @@ export class Splash extends BaseScene {
         }
 
         // 在 11 秒时跳转到主菜单
-        if (this.elapsed >= 13) {
+        if (this.elapsed >= 10) {
             this.scene.start("MainMenu");
         }
     }
@@ -145,8 +124,56 @@ export class Splash extends BaseScene {
         });
     }
 
+    private dissolveJokerCard(dt: number) {
+        if (this.jokerCard.isDestroyed) return;
+        this.jokerCardDissolveElapsed += dt;
+        const dissolve = this.jokerCardDissolveElapsed / 10;
+
+        if (!this.jokerCardDissolving) {
+            this.jokerCardDissolving = true;
+            this.jokerCardDissolveShader = this.make.shader({
+                config: {
+                    name: "dissolve",
+                    fragmentKey: "dissolve",
+                    initialUniforms: {
+                        resolution: [
+                            this.cameras.main.width,
+                            this.cameras.main.height,
+                        ],
+                        time: 0.0,
+                        dissolve: 0.0,
+                    },
+                },
+                x: this.jokerCard.x,
+                y: this.jokerCard.y,
+                width: this.jokerCard.displayWidth * 1.08,
+                height: this.jokerCard.displayHeight * 1.08,
+                add: false,
+            });
+            this.jokerCard
+                .enableFilters()
+                .filters?.external.addMask(this.jokerCardDissolveShader);
+            AudioManager.getInstance().playSound(
+                this.scene.key,
+                "splash_buildup",
+                {
+                    volume: 0.7,
+                    rate: 1,
+                },
+            );
+            return;
+        }
+        if (dissolve >= 1) {
+            this.jokerCard.destroy();
+            return;
+        }
+        this.jokerCardDissolveShader.setUniform("time", dissolve);
+        this.jokerCardDissolveShader.setUniform("dissolve", dissolve);
+    }
+
     // 模拟3d旋转效果（在初始缩放基础上叠加）
     private updateJokerCard(dt: number) {
+        if (this.jokerCard.isDestroyed) return;
         this.jokerCardElapsed += dt;
         const speed = 1.2;
         const t = this.jokerCardElapsed * speed;
