@@ -13,6 +13,7 @@ import {
     PLAYING_CARD_VALUE_COL,
     PLAYING_CARD_SUIT_NAME,
 } from "@/config";
+import { AudioManager } from "../manager/AudioManager";
 
 /** 选中时向上位移的像素值 */
 const SELECT_OFFSET_Y = -30;
@@ -181,6 +182,15 @@ export class PlayingCard {
         if (!this.scene || !this.container) return;
         if (this.scene.tweens.isTweening(this.container)) return;
 
+        AudioManager.getInstance().playSound(
+            this.scene.scene.key,
+            this.selected ? "cardSlide2" : "cardSlide1",
+            this.selected
+                ? {
+                      volume: 0.3,
+                  }
+                : undefined,
+        );
         this.selected = !this.selected;
 
         this.scene.tweens.add({
