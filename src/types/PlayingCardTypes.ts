@@ -55,10 +55,21 @@ export interface AddToSceneOptions {
  * 拖拽回调配置选项
  */
 export interface DragCallbacksOptions {
-    onDragStart?: (card: any) => void;
-    onDragEnd?: (card: any, x: number, y: number) => void;
+    onDragMove?: (
+        card: import("@/game/entities/PlayingCard").PlayingCard,
+        x: number,
+        y: number,
+    ) => void | null;
+    onDragStart?: (
+        card: import("@/game/entities/PlayingCard").PlayingCard,
+    ) => void;
+    onDragEnd?: (
+        card: import("@/game/entities/PlayingCard").PlayingCard,
+        x: number,
+        y: number,
+    ) => void;
     canDrop?: (
-        card: any,
+        card: import("@/game/entities/PlayingCard").PlayingCard,
         x: number,
         y: number,
     ) => boolean | { x: number; y: number } | null;

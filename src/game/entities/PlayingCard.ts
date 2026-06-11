@@ -33,7 +33,7 @@ export class PlayingCard {
     scale: number = 1;
     /** 添加到场景后的 Container 引用（未添加时为 null） */
     container: Phaser.GameObjects.Container | null = null;
-
+    public pickupMagnification = 1.2; // 拾取时的放大倍数
     private scene: Phaser.Scene | null = null;
     private base: Phaser.GameObjects.Image | null = null;
     private overlay: Phaser.GameObjects.Image | null = null;
@@ -49,7 +49,7 @@ export class PlayingCard {
     private dragOffsetY = 0;
     private dragThreshold = 5; // 移动阈值，超过此距离才视为拖拽
     private longPressThreshold = 200; // 长按阈值（毫秒）
-    private originalX = 0; // 拖拽开始时的原始X位置
+    originalX = 0; // 拖拽开始时的原始X位置
     private originalY = 0; // 拖拽开始时的原始Y位置
     private targetX = 0; // 拖拽目标X位置（用于平滑跟随）
     private targetY = 0; // 拖拽目标Y位置（用于平滑跟随）
@@ -71,6 +71,10 @@ export class PlayingCard {
           ) => boolean | { x: number; y: number } | null)
         | null
         | undefined = null; // 验证是否可放置的回调函数，返回布尔值或吸附位置对象
+    private onDragMoveCallback:
+        | ((card: any, x: number, y: number) => void)
+        | null
+        | undefined = null;
 
     constructor(suit?: Suit, value?: PlayingCardValue, faceUp = true) {
         this.suit =
@@ -233,6 +237,7 @@ export class PlayingCard {
         this.onDragStartCallback = options.onDragStart;
         this.onDragEndCallback = options.onDragEnd;
         this.canDropCallback = options.canDrop ?? null;
+        this.onDragMoveCallback = options.onDragMove ?? null;
     }
 
     /** 获取当前是否正在拖拽 */
@@ -318,6 +323,8 @@ export class PlayingCard {
         if (this.isLongPressTriggered) {
             this.targetX = pointer.x - this.dragOffsetX;
             this.targetY = pointer.y - this.dragOffsetY;
+            // 调用拖拽移动回调函数
+            this.onDragMoveCallback?.(this, this.targetX, this.targetY);
         }
     }
 
@@ -335,8 +342,6 @@ export class PlayingCard {
         this.scene.input.off("pointerup", this.handlePointerUp, this);
         // 如果已触发长按拖拽
         if (this.isLongPressTriggered) {
-            this.isLongPressTriggered = false;
-
             // 移除场景 update 事件
             this.scene.events.off("update", this.updateDragPosition, this);
 
@@ -348,6 +353,8 @@ export class PlayingCard {
             if (this.canDropCallback) {
                 dropResult = this.canDropCallback(this, currentX, currentY);
             }
+
+            this.isLongPressTriggered = false;
 
             if (dropResult === true) {
                 // 可以放置，留在当前位置
@@ -504,7 +511,7 @@ export class PlayingCard {
 
         this.scene.tweens.add({
             targets: this.container,
-            scale: this.scale * 1.2,
+            scale: this.scale * this.pickupMagnification,
             rotation: shakeRotation,
             duration: 120 + Math.random() * 60, // 随机持续时间 120-180ms
             ease: "Back.easeOut",
