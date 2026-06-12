@@ -25,7 +25,8 @@
         "dev:prod": "vite --mode production",
         "build": "vite build --mode production",
         "android:build": "npm run build && cross-env CAPACITOR_ENV=production npx cap sync android && npx cap open android",
-        "android:debug": "cross-env CAPACITOR_ENV=development npx cap sync android && npx cap open android"
+        "android:debug": "cross-env CAPACITOR_ENV=development npx cap sync android && npx cap open android",
+        "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,vue,css,scss,json}\""
     },
     "dependencies": {
         "@capacitor/android": "^8.3.4",
