@@ -53,24 +53,37 @@ export interface AddToSceneOptions {
 
 /**
  * 拖拽回调配置选项
+ * currentX | currentY 代表当前卡牌的坐标
+ * targetX | targetY 代表拖拽目标的坐标
  */
 export interface DragCallbacksOptions {
-    onDragMove?: (
-        card: import("@/game/entities/PlayingCard").PlayingCard,
-        x: number,
-        y: number,
-    ) => void | null;
     onDragStart?: (
         card: import("@/game/entities/PlayingCard").PlayingCard,
+        currentX: number,
+        currentY: number,
+        targetX: number,
+        targetY: number,
     ) => void;
+    onDragMove?: (
+        card: import("@/game/entities/PlayingCard").PlayingCard,
+        currentX: number,
+        currentY: number,
+        targetX: number,
+        targetY: number,
+    ) => void | null;
+
     onDragEnd?: (
         card: import("@/game/entities/PlayingCard").PlayingCard,
-        x: number,
-        y: number,
+        currentX: number,
+        currentY: number,
+        targetX: number,
+        targetY: number,
     ) => void;
     canDrop?: (
         card: import("@/game/entities/PlayingCard").PlayingCard,
-        x: number,
-        y: number,
+        currentX: number,
+        currentY: number,
+        targetX: number,
+        targetY: number,
     ) => boolean | { x: number; y: number } | null;
 }

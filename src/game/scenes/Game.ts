@@ -6,7 +6,7 @@ import { GameData } from "@/config";
 import Random from "@xiaokaixuan/random";
 import { cloneDeep } from "lodash";
 import { PlayingCard } from "../entities/PlayingCard";
-import { Actions } from "phaser";
+import { Actions, Math } from "phaser";
 import { BalatroBackground } from "@/game/entities/shaders/BalatroBackground";
 import { AudioManager } from "../manager/AudioManager";
 export class Game extends BaseScene {
@@ -183,7 +183,8 @@ export class Game extends BaseScene {
         if (cardOffsetNum >= 0) {
             index = this.gameData.handLimit - 1;
         } else {
-            index = this.gameData.handLimit - 1 + Math.floor(cardOffsetNum);
+            index =
+                this.gameData.handLimit - 1 + window.Math.floor(cardOffsetNum);
         }
 
         // 上面的逻辑是针对往右挪动的情况 如果往左挪 则需要+1
@@ -227,14 +228,14 @@ export class Game extends BaseScene {
                         this.getHandPlayingCardXByIndex(itemPlayingCard, idx);
                 }
                 itemPlayingCard.setDragCallbacks({
-                    onDragStart: () => {
-                        if (!itemPlayingCard.container) {
+                    onDragStart: (card) => {
+                        if (!card.container) {
                             return;
                         }
                         // 拖拽开始时，将卡片移动到最前面
                         this.playCardsContainer.moveTo(
-                            itemPlayingCard.container,
-                            this.playCardsContainer.getAll().length - 1,
+                            card.container,
+                            this.playCardsContainer.count("active", true) - 1,
                         );
                     },
                     onDragEnd: (card) => {
@@ -253,35 +254,42 @@ export class Game extends BaseScene {
                             targetIndex,
                         );
                     },
-                    canDrop: (card, x) => {
+                    canDrop: (card, currentX, currentY, targetX, targetY) => {
                         if (!card.container) {
                             return false;
                         }
                         // 计算目标索引
                         const targetIndex = this.getHandPlayingCardIndexByX(
                             card,
-                            x,
+                            targetX,
                         );
 
-                        const targetX = this.getHandPlayingCardXByIndex(
+                        // 计算应该吸附到的x坐标
+                        const x = this.getHandPlayingCardXByIndex(
                             card,
                             targetIndex,
                         );
 
-                        // 返回吸附位置，Y坐标使用容器的Y位置
+                        // 返回吸附位置，y坐标拖拽前的y 因为可能拖拽前就是被选中的
                         return {
-                            x: targetX,
-                            y: 0,
+                            x,
+                            y: card.originalY,
                         };
                     },
-                    onDragMove: (card, x) => {
+                    onDragMove: (
+                        card,
+                        currentX,
+                        currentY,
+                        targetX,
+                        targetY,
+                    ) => {
                         if (!card.container) {
                             return;
                         }
-                        // 计算当前目标索引
+                        // 计算当前拖拽卡牌所在x对应的手牌索引
                         const targetIndex = this.getHandPlayingCardIndexByX(
                             card,
-                            x,
+                            targetX,
                         );
 
                         // 找到当前卡牌在 handPlayingCards 中的索引
@@ -289,7 +297,8 @@ export class Game extends BaseScene {
                             (item) => item.container === card.container,
                         );
 
-                        // 如果目标索引与当前索引不同，且在有效范围内，移动其他卡牌
+                        // 如果targetIndex与当前索引不同，且在有效范围内，移动其他卡牌
+                        // 不用操作其他卡牌再container中的索引 因为他们本来就是有顺序的
                         if (
                             targetIndex !== currentIndex &&
                             targetIndex >= 0 &&
@@ -303,14 +312,23 @@ export class Game extends BaseScene {
 
                             // 更新其他卡牌的位置
                             this.handPlayingCards.forEach((item, index) => {
-                                if (item !== card) {
+                                if (!item.container) {
+                                    return;
+                                }
+                                const itemTargetX =
+                                    this.getHandPlayingCardXByIndex(
+                                        item,
+                                        index,
+                                    );
+                                // 如果当前卡牌不是当前拖拽的卡牌，且目标卡牌需要移动
+                                if (
+                                    item !== card &&
+                                    itemTargetX !== item.container.x
+                                ) {
                                     // 使用动画移动卡牌
                                     this.tweens.add({
                                         targets: item.container,
-                                        x: this.getHandPlayingCardXByIndex(
-                                            item,
-                                            index,
-                                        ),
+                                        x: itemTargetX,
                                         duration: 150,
                                         ease: "Back.easeOut",
                                     });

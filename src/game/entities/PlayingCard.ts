@@ -50,29 +50,49 @@ export class PlayingCard {
     private dragThreshold = 5; // 移动阈值，超过此距离才视为拖拽
     private longPressThreshold = 200; // 长按阈值（毫秒）
     originalX = 0; // 拖拽开始时的原始X位置
-    private originalY = 0; // 拖拽开始时的原始Y位置
+    originalY = 0; // 拖拽开始时的原始Y位置
     private targetX = 0; // 拖拽目标X位置（用于平滑跟随）
     private targetY = 0; // 拖拽目标Y位置（用于平滑跟随）
     private smoothFactor = 0.15; // 平滑跟随系数（0-1，越小惯性越大）
-    private maxTiltAngle = Phaser.Math.DegToRad(10); // 最大倾斜角度
+    private maxTiltAngle = Phaser.Math.DegToRad(90); // 最大倾斜角度
     private onDragStartCallback:
-        | ((card: PlayingCard) => void)
+        | ((
+              card: PlayingCard,
+              currentX: number,
+              currentY: number,
+              targetX: number,
+              targetY: number,
+          ) => void)
         | null
         | undefined = null;
     private onDragEndCallback:
-        | ((card: PlayingCard, x: number, y: number) => void)
+        | ((
+              card: PlayingCard,
+              currentX: number,
+              currentY: number,
+              targetX: number,
+              targetY: number,
+          ) => void)
         | null
         | undefined = null;
     private canDropCallback:
         | ((
               card: PlayingCard,
-              x: number,
-              y: number,
+              currentX: number,
+              currentY: number,
+              targetX: number,
+              targetY: number,
           ) => boolean | { x: number; y: number } | null)
         | null
         | undefined = null; // 验证是否可放置的回调函数，返回布尔值或吸附位置对象
     private onDragMoveCallback:
-        | ((card: any, x: number, y: number) => void)
+        | ((
+              card: PlayingCard,
+              currentX: number,
+              currentY: number,
+              targetX: number,
+              targetY: number,
+          ) => void | null)
         | null
         | undefined = null;
 
@@ -234,10 +254,10 @@ export class PlayingCard {
 
     /** 设置拖拽回调函数 */
     setDragCallbacks(options: DragCallbacksOptions): void {
-        this.onDragStartCallback = options.onDragStart;
-        this.onDragEndCallback = options.onDragEnd;
-        this.canDropCallback = options.canDrop ?? null;
+        this.onDragStartCallback = options.onDragStart ?? null;
         this.onDragMoveCallback = options.onDragMove ?? null;
+        this.canDropCallback = options.canDrop ?? null;
+        this.onDragEndCallback = options.onDragEnd ?? null;
     }
 
     /** 获取当前是否正在拖拽 */
@@ -324,7 +344,13 @@ export class PlayingCard {
             this.targetX = pointer.x - this.dragOffsetX;
             this.targetY = pointer.y - this.dragOffsetY;
             // 调用拖拽移动回调函数
-            this.onDragMoveCallback?.(this, this.targetX, this.targetY);
+            this.onDragMoveCallback?.(
+                this,
+                this.container.x,
+                this.container.y,
+                this.targetX,
+                this.targetY,
+            );
         }
     }
 
@@ -345,20 +371,29 @@ export class PlayingCard {
             // 移除场景 update 事件
             this.scene.events.off("update", this.updateDragPosition, this);
 
-            const currentX = this.container.x;
-            const currentY = this.container.y;
-
             // 检查当前位置是否可放置
             let dropResult: boolean | { x: number; y: number } | null = true;
             if (this.canDropCallback) {
-                dropResult = this.canDropCallback(this, currentX, currentY);
+                dropResult = this.canDropCallback(
+                    this,
+                    this.container.x,
+                    this.container.y,
+                    this.targetX,
+                    this.targetY,
+                );
             }
 
             this.isLongPressTriggered = false;
 
             if (dropResult === true) {
                 // 可以放置，留在当前位置
-                this.onDragEndCallback?.(this, currentX, currentY);
+                this.onDragEndCallback?.(
+                    this,
+                    this.container.x,
+                    this.container.y,
+                    this.targetX,
+                    this.targetY,
+                );
                 this.addDropShake();
                 this.container.setDepth(0);
             } else if (dropResult && typeof dropResult === "object") {
@@ -393,10 +428,17 @@ export class PlayingCard {
             duration: 200,
             ease: "Back.easeOut",
             onComplete: () => {
+                if (!this.container) return;
                 // 恢复深度
                 this.container?.setDepth(0);
                 // 触发拖拽结束回调（回到原始位置）
-                this.onDragEndCallback?.(this, this.originalX, this.originalY);
+                this.onDragEndCallback?.(
+                    this,
+                    this.container.x,
+                    this.container.y,
+                    this.originalX,
+                    this.originalY,
+                );
             },
         });
     }
@@ -418,10 +460,17 @@ export class PlayingCard {
             duration: 150,
             ease: "Back.easeOut",
             onComplete: () => {
+                if (!this.container) return;
                 // 恢复深度
                 this.container?.setDepth(0);
                 // 触发拖拽结束回调（吸附到指定位置）
-                this.onDragEndCallback?.(this, x, y);
+                this.onDragEndCallback?.(
+                    this,
+                    this.container.x,
+                    this.container.y,
+                    x,
+                    y,
+                );
             },
         });
     }
@@ -440,7 +489,13 @@ export class PlayingCard {
         this.addPickupShake();
 
         // 触发拖拽开始回调
-        this.onDragStartCallback?.(this);
+        this.onDragStartCallback?.(
+            this,
+            this.container.x,
+            this.container.y,
+            this.targetX,
+            this.targetY,
+        );
 
         // 注册场景 update 事件，实现平滑跟随和倾斜效果
         this.scene.events.on("update", this.updateDragPosition, this);
@@ -467,7 +522,7 @@ export class PlayingCard {
 
         // 根据水平移动速度计算倾斜角度（手指在右侧向右旋转，左侧向左旋转）
         const targetRotation = Phaser.Math.Clamp(
-            velocityX * 0.5, // 速度乘以系数得到倾斜角度
+            velocityX * 0.05, // 速度乘以系数得到倾斜角度
             -this.maxTiltAngle,
             this.maxTiltAngle,
         );
