@@ -1,10 +1,10 @@
 import BigNumber from "bignumber.js";
-import { PlayingCard } from "./PlayingCardTypes";
+import { IPlayingCard } from "./PlayingCardTypes";
 
 /**
- *   牌组枚举
+ *   牌组名称枚举
  */
-export enum Decks {
+export enum DeckNames {
     /**
      *  @name 红色牌组
      *  @description  每回合弃牌次数 +1
@@ -84,9 +84,9 @@ export enum Decks {
 }
 
 /**
- *   赌注枚举
+ *   赌注名称枚举
  */
-export enum Stakes {
+export enum StakeNames {
     /**
      *  @name 白注
      *  @description 基础难度
@@ -130,9 +130,9 @@ export enum Stakes {
 }
 
 /**
- *   盲注类型枚举
+ *   盲注名称枚举
  */
-export enum BlindsType {
+export enum BlindNames {
     /**
      *  @name 小盲注
      *  @description 无特殊效果。跳过此盲注可获得一个标签。通过奖励3$
@@ -151,18 +151,18 @@ export enum BlindsType {
 }
 
 /**
- *   底注分数接口
+ *   底注对应赌注分数接口
  */
 export interface AnteScore {
-    [Stakes.WhiteStake]: BigNumber;
-    [Stakes.GreenStake]: BigNumber;
-    [Stakes.PurpleStake]: BigNumber;
+    [StakeNames.WhiteStake]: BigNumber;
+    [StakeNames.GreenStake]: BigNumber;
+    [StakeNames.PurpleStake]: BigNumber;
 }
 
 /**
- *   盲注卡片ui的类型枚举
+ *   选择盲注的卡片ui的类型枚举
  */
-export enum BlindCardsType {
+export enum BlindCardTypes {
     /**
      *  @name 当前
      */
@@ -182,23 +182,30 @@ export enum BlindCardsType {
 }
 
 /**
- *   盲注卡片数据接口
+ *   历史盲注数据接口
  */
-export interface BlindCardData {
-    CardsType: BlindCardsType;
+export interface HistoryBlind {
+    CardsType: BlindCardTypes;
     [key: string]: any;
 }
 
 /**
- *   游戏数据接口
+ *   游戏存档数据接口
  */
 export interface GameData {
-    deck: Decks;
-    stake: Stakes;
+    /** 牌组 */
+    deck: DeckNames;
+    /** 赌注 */
+    stake: StakeNames;
+    /** 底注 */
     ante: number;
+    /** 回合数 */
     round: number;
-    playingCard: PlayingCard[];
-    historyBlinds: BlindCardData[];
+    /** 当前牌组 */
+    playingCard: IPlayingCard[];
+    /** 历史盲注 */
+    historyBlinds: HistoryBlind[];
+    /** 手牌上限 */
     handLimit: number;
 }
 
@@ -264,7 +271,7 @@ export enum HandTypes {
  * 牌型数据接口
  * @name 牌型配置
  */
-export interface IHandData {
+export interface HandData {
     /** 描述 */
     desc: string;
     /** 是否可见 */

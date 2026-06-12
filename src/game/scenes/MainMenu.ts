@@ -3,10 +3,16 @@ import { GameObjects, Geom } from "phaser";
 import { BalatroSplash } from "@/game/entities/shaders/BalatroSplash";
 import { calcPx, calcScale } from "@/utils";
 import { PlayingCard } from "@/game/entities/PlayingCard";
-import { BlindsType, Decks, PlayingCardValue, Stakes, Suit } from "@/types";
+import {
+    BlindNames,
+    DeckNames,
+    PlayingCardValues,
+    StakeNames,
+    Suits,
+} from "@/types";
 import { BaseScene } from "./BaseScene";
 import { AudioManager } from "@/game/manager/AudioManager";
-import { PlayingCardClickMode } from "@/types";
+import { PlayingCardClickModes } from "@/types";
 import { preferences } from "@/utils";
 import { cloneDeep } from "lodash";
 
@@ -48,12 +54,12 @@ export class MainMenu extends BaseScene {
         this.logo = this.add.image(width / 2, calcPx(width, 460), "balatro");
 
         this.logo.setScale(calcScale(width, this.logo.height, 863));
-        const A = new PlayingCard(Suit.Spades, PlayingCardValue.Ace);
+        const A = new PlayingCard(Suits.Spades, PlayingCardValues.Ace);
         A.addToScene({
             scene: this,
             x: width / 2,
             y: calcPx(width, 460),
-            clickMode: PlayingCardClickMode.none,
+            clickMode: PlayingCardClickModes.none,
             enableDrag: true,
         });
 
@@ -83,8 +89,8 @@ export class MainMenu extends BaseScene {
             calcPx(width, 70),
             async () => {
                 const data = {
-                    deck: Decks.RedDeck,
-                    stake: Stakes.WhiteStake,
+                    deck: DeckNames.RedDeck,
+                    stake: StakeNames.WhiteStake,
                     ante: 1,
                     round: 0,
                     playingCard: cloneDeep(ALL_PLAYING_CARDS),

@@ -1,4 +1,4 @@
-import { BlindCardsType, BlindsType } from "@/types";
+import { BlindCardTypes, BlindNames } from "@/types";
 import { calcPx } from "@/utils";
 import { GameObjects } from "phaser";
 import { createButton } from ".";
@@ -6,7 +6,7 @@ import { blindCardsBtnTextMap } from "@/config";
 
 export default class BlindCard extends GameObjects.Container {
     container: GameObjects.Container;
-    CardsType: BlindCardsType;
+    CardsType: BlindCardTypes;
 
     chooseBtnClick: () => void;
 
@@ -22,12 +22,12 @@ export default class BlindCard extends GameObjects.Container {
     constructor({
         scene,
         blindsType,
-        CardsType = BlindCardsType.Next,
+        CardsType = BlindCardTypes.Next,
         chooseBtnClick = () => {},
     }: {
         scene: Phaser.Scene;
-        blindsType: BlindsType;
-        CardsType?: BlindCardsType;
+        blindsType: BlindNames;
+        CardsType?: BlindCardTypes;
         chooseBtnClick?: () => void;
     }) {
         super(scene);
@@ -41,9 +41,9 @@ export default class BlindCard extends GameObjects.Container {
         this.cardHeight = calcPx(this.cameraWidth, 874);
         this.spacing = calcPx(this.cameraWidth, 50);
         this.index =
-            blindsType === BlindsType.SmallBlind
+            blindsType === BlindNames.SmallBlind
                 ? 0
-                : blindsType === BlindsType.BigBlind
+                : blindsType === BlindNames.BigBlind
                   ? 1
                   : 2;
     }
@@ -55,7 +55,7 @@ export default class BlindCard extends GameObjects.Container {
         const containerY =
             this.cameraHeight -
             this.cardHeight / 2 +
-            (this.CardsType !== BlindCardsType.Active
+            (this.CardsType !== BlindCardTypes.Active
                 ? calcPx(this.cameraWidth, 72)
                 : 0);
 
@@ -76,7 +76,7 @@ export default class BlindCard extends GameObjects.Container {
             blindCardsBtnTextMap[this.CardsType],
             calcPx(this.cameraWidth, 50),
             this.chooseBtnClick,
-            this.CardsType !== BlindCardsType.Active,
+            this.CardsType !== BlindCardTypes.Active,
         );
         this.container.add([chooseBtn]);
         const groupBg = this.currentScene.add.rectangle(

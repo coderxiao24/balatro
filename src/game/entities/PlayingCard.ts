@@ -1,8 +1,8 @@
 import Phaser from "phaser";
 import {
-    Suit,
-    PlayingCardValue,
-    PlayingCardClickMode,
+    Suits,
+    PlayingCardValues,
+    PlayingCardClickModes,
     AddToSceneOptions,
     DragCallbacksOptions,
 } from "@/types";
@@ -24,8 +24,8 @@ const SELECT_OFFSET_Y = -30;
  * 构造函数可传入指定花色和点数；不传则随机生成一张牌。
  */
 export class PlayingCard {
-    readonly suit: Suit;
-    readonly value: PlayingCardValue;
+    readonly suit: Suits;
+    readonly value: PlayingCardValues;
     readonly frame: number;
     readonly name: string;
     /** 是否正面朝上（可读写，不会带动画，需配合 flip() 或直接更新后用 refreshFace() 同步） */
@@ -37,7 +37,7 @@ export class PlayingCard {
     private scene: Phaser.Scene | null = null;
     private base: Phaser.GameObjects.Image | null = null;
     private overlay: Phaser.GameObjects.Image | null = null;
-    private clickMode: PlayingCardClickMode = PlayingCardClickMode.none;
+    private clickMode: PlayingCardClickModes = PlayingCardClickModes.none;
     private selected = false;
 
     // 长按拖拽相关属性
@@ -96,7 +96,7 @@ export class PlayingCard {
         | null
         | undefined = null;
 
-    constructor(suit?: Suit, value?: PlayingCardValue, faceUp = true) {
+    constructor(suit?: Suits, value?: PlayingCardValues, faceUp = true) {
         this.suit =
             suit ??
             PLAYING_CARD_ALL_SUITS[
@@ -123,7 +123,7 @@ export class PlayingCard {
             scene,
             x,
             y,
-            clickMode = PlayingCardClickMode.none,
+            clickMode = PlayingCardClickModes.none,
             enableDrag = false,
         } = options;
 
@@ -142,7 +142,7 @@ export class PlayingCard {
         // 始终设置容器尺寸，确保外部可以正确获取宽高
         this.container.setSize(this.base.displayWidth, this.base.displayHeight);
 
-        if (clickMode !== PlayingCardClickMode.none || enableDrag) {
+        if (clickMode !== PlayingCardClickModes.none || enableDrag) {
             this.container.setInteractive({
                 useHandCursor: true,
             });
@@ -298,7 +298,7 @@ export class PlayingCard {
             this.scene.input.on("pointermove", this.handlePointerMove, this);
 
             // 如果没有点击模式，则直接触发拖拽（无需等待长按）
-            if (this.clickMode === PlayingCardClickMode.none) {
+            if (this.clickMode === PlayingCardClickModes.none) {
                 this.triggerLongPress(pointer);
             } else {
                 // 否则需要等待长按阈值来区分点击和拖拽
@@ -405,7 +405,7 @@ export class PlayingCard {
             }
         } else {
             // 未触发拖拽，视为点击（仅在启用click模式时）
-            if (this.clickMode !== PlayingCardClickMode.none) {
+            if (this.clickMode !== PlayingCardClickModes.none) {
                 this.handleClick();
             }
         }

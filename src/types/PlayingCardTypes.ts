@@ -1,5 +1,7 @@
+import { PlayingCard } from "@/game/entities/PlayingCard";
+
 // 扑克牌花色枚举（与精灵图行的顺序一致）
-export enum Suit {
+export enum Suits {
     /** 红心 */
     Hearts = "Hearts",
     /** 梅花 */
@@ -11,7 +13,7 @@ export enum Suit {
 }
 
 // 扑克牌点数枚举
-export enum PlayingCardValue {
+export enum PlayingCardValues {
     Two = "2",
     Three = "3",
     Four = "4",
@@ -28,21 +30,21 @@ export enum PlayingCardValue {
 }
 
 // 一张扑克牌的全部数据
-export interface PlayingCard {
+export interface IPlayingCard {
     name: string;
-    value: PlayingCardValue;
-    suit: Suit;
+    value: PlayingCardValues;
+    suit: Suits;
     frame: number;
 }
 
 /** 点击交互模式 */
-export enum PlayingCardClickMode {
+export enum PlayingCardClickModes {
     none = "none",
     flip = "flip",
     select = "select",
 }
 
-export type PlayingCardDict = Record<string, PlayingCard>;
+export type PlayingCardDict = Record<string, IPlayingCard>;
 
 /**
  * 添加卡牌到场景的配置选项
@@ -51,7 +53,7 @@ export interface AddToSceneOptions {
     scene: Phaser.Scene;
     x: number;
     y: number;
-    clickMode?: PlayingCardClickMode;
+    clickMode?: PlayingCardClickModes;
     enableDrag?: boolean;
 }
 
@@ -62,14 +64,14 @@ export interface AddToSceneOptions {
  */
 export interface DragCallbacksOptions {
     onDragStart?: (
-        card: import("@/game/entities/PlayingCard").PlayingCard,
+        card: PlayingCard,
         currentX: number,
         currentY: number,
         targetX: number,
         targetY: number,
     ) => void;
     onDragMove?: (
-        card: import("@/game/entities/PlayingCard").PlayingCard,
+        card: PlayingCard,
         currentX: number,
         currentY: number,
         targetX: number,
@@ -77,14 +79,14 @@ export interface DragCallbacksOptions {
     ) => void | null;
 
     onDragEnd?: (
-        card: import("@/game/entities/PlayingCard").PlayingCard,
+        card: PlayingCard,
         currentX: number,
         currentY: number,
         targetX: number,
         targetY: number,
     ) => void;
     canDrop?: (
-        card: import("@/game/entities/PlayingCard").PlayingCard,
+        card: PlayingCard,
         currentX: number,
         currentY: number,
         targetX: number,

@@ -1,7 +1,12 @@
 import { calcPx, calcScale, preferences } from "@/utils";
 import { BaseScene } from "./BaseScene";
 import BlindCard from "../ui/BlindCard";
-import { BlindCardsType, BlindsType, PlayingCardClickMode } from "@/types";
+import {
+    BlindCardTypes,
+    BlindNames,
+    IPlayingCard,
+    PlayingCardClickModes,
+} from "@/types";
 import { GameData } from "@/types";
 import Random from "@xiaokaixuan/random";
 import { cloneDeep } from "lodash";
@@ -17,7 +22,7 @@ export class Game extends BaseScene {
     private cameraWidth: number;
     private cameraHeight: number;
     playCardsContainer: Phaser.GameObjects.Container;
-    tempPlayingCards: import("@/types").PlayingCard[];
+    tempPlayingCards: IPlayingCard[];
     handPlayingCards: PlayingCard[];
     private bgShader: BalatroBackground;
     playCardsContainerWidth: number;
@@ -55,12 +60,12 @@ export class Game extends BaseScene {
 
         this.smallBlindCard = new BlindCard({
             scene: this,
-            blindsType: BlindsType.SmallBlind,
+            blindsType: BlindNames.SmallBlind,
             CardsType:
                 this.gameData.historyBlinds[this.gameData.round - 1]
                     ?.CardsType || this.gameData.round % 3 === 0
-                    ? BlindCardsType.Active
-                    : BlindCardsType.Next,
+                    ? BlindCardTypes.Active
+                    : BlindCardTypes.Next,
             chooseBtnClick: async () => {
                 await this.hideBlindCards();
                 this.startNextRound();
@@ -68,21 +73,21 @@ export class Game extends BaseScene {
         });
         this.bigBlindCard = new BlindCard({
             scene: this,
-            blindsType: BlindsType.BigBlind,
+            blindsType: BlindNames.BigBlind,
             CardsType:
                 this.gameData.historyBlinds[this.gameData.round - 1]
                     ?.CardsType || this.gameData.round % 3 === 1
-                    ? BlindCardsType.Active
-                    : BlindCardsType.Next,
+                    ? BlindCardTypes.Active
+                    : BlindCardTypes.Next,
         });
         this.bossBlindCard = new BlindCard({
             scene: this,
-            blindsType: BlindsType.BossBlind,
+            blindsType: BlindNames.BossBlind,
             CardsType:
                 this.gameData.historyBlinds[this.gameData.round - 1]
                     ?.CardsType || this.gameData.round % 3 === 2
-                    ? BlindCardsType.Active
-                    : BlindCardsType.Next,
+                    ? BlindCardTypes.Active
+                    : BlindCardTypes.Next,
         });
 
         AudioManager.getInstance().playSound(this.scene.key, "cancel");
@@ -201,9 +206,7 @@ export class Game extends BaseScene {
         return index;
     }
 
-    async createHandPlayingCards(
-        playingCards: import("@/types").PlayingCard[],
-    ) {
+    async createHandPlayingCards(playingCards: IPlayingCard[]) {
         this.handPlayingCards = this.tempPlayingCards
             .splice(0, this.gameData.handLimit)
             .map((item, idx) => {
@@ -213,7 +216,7 @@ export class Game extends BaseScene {
                     scene: this,
                     x: 0,
                     y: 0,
-                    clickMode: PlayingCardClickMode.select,
+                    clickMode: PlayingCardClickModes.select,
                     enableDrag: true,
                 });
                 if (itemPlayingCard.container) {
