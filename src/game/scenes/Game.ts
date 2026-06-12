@@ -126,7 +126,7 @@ export class Game extends BaseScene {
         this.playCardsContainer.addAt(groupBg, 0);
 
         const random = new Random();
-        this.tempPlayingCards = random.shuffle(this.gameData.playingCard);
+        this.tempPlayingCards = random.shuffle(this.gameData.completeDeck);
 
         this.createHandPlayingCards(
             this.tempPlayingCards.splice(0, this.gameData.handLimit),
@@ -207,142 +207,132 @@ export class Game extends BaseScene {
     }
 
     async createHandPlayingCards(playingCards: IPlayingCard[]) {
-        this.handPlayingCards = this.tempPlayingCards
-            .splice(0, this.gameData.handLimit)
-            .map((item, idx) => {
-                const itemPlayingCard = new PlayingCard(item.suit, item.value);
+        this.handPlayingCards = playingCards.map((item, idx) => {
+            const itemPlayingCard = new PlayingCard(item.suit, item.value);
 
-                itemPlayingCard.addToScene({
-                    scene: this,
-                    x: 0,
-                    y: 0,
-                    clickMode: PlayingCardClickModes.select,
-                    enableDrag: true,
-                });
-                if (itemPlayingCard.container) {
-                    itemPlayingCard.setScale(
-                        calcScale(
-                            this.cameraWidth,
-                            itemPlayingCard.container.width,
-                            180,
-                        ),
-                    );
-                    itemPlayingCard.container.x =
-                        this.getHandPlayingCardXByIndex(itemPlayingCard, idx);
-                }
-                itemPlayingCard.setDragCallbacks({
-                    onDragStart: (card) => {
-                        if (!card.container) {
-                            return;
-                        }
-                        // 拖拽开始时，将卡片移动到最前面
-                        this.playCardsContainer.moveTo(
-                            card.container,
-                            this.playCardsContainer.count("active", true) - 1,
-                        );
-                    },
-                    onDragEnd: (card) => {
-                        if (!card.container) {
-                            return;
-                        }
-                        // 找到当前卡牌在 handPlayingCards 中的索引 并+1
-                        // +1是因为 索引0是背景
-                        const targetIndex =
-                            this.handPlayingCards.findIndex(
-                                (item) => item.container === card.container,
-                            ) + 1;
-
-                        this.playCardsContainer.moveTo(
-                            card.container,
-                            targetIndex,
-                        );
-                    },
-                    canDrop: (card, currentX, currentY, targetX, targetY) => {
-                        if (!card.container) {
-                            return false;
-                        }
-                        // 计算目标索引
-                        const targetIndex = this.getHandPlayingCardIndexByX(
-                            card,
-                            targetX,
-                        );
-
-                        // 计算应该吸附到的x坐标
-                        const x = this.getHandPlayingCardXByIndex(
-                            card,
-                            targetIndex,
-                        );
-
-                        // 返回吸附位置，y坐标拖拽前的y 因为可能拖拽前就是被选中的
-                        return {
-                            x,
-                            y: card.originalY,
-                        };
-                    },
-                    onDragMove: (
-                        card,
-                        currentX,
-                        currentY,
-                        targetX,
-                        targetY,
-                    ) => {
-                        if (!card.container) {
-                            return;
-                        }
-                        // 计算当前拖拽卡牌所在x对应的手牌索引
-                        const targetIndex = this.getHandPlayingCardIndexByX(
-                            card,
-                            targetX,
-                        );
-
-                        // 找到当前卡牌在 handPlayingCards 中的索引
-                        const currentIndex = this.handPlayingCards.findIndex(
-                            (item) => item.container === card.container,
-                        );
-
-                        // 如果targetIndex与当前索引不同，且在有效范围内，移动其他卡牌
-                        // 不用操作其他卡牌再container中的索引 因为他们本来就是有顺序的
-                        if (
-                            targetIndex !== currentIndex &&
-                            targetIndex >= 0 &&
-                            targetIndex < this.handPlayingCards.length
-                        ) {
-                            // 移除当前卡牌
-                            this.handPlayingCards.splice(currentIndex, 1);
-
-                            // 插入到目标位置
-                            this.handPlayingCards.splice(targetIndex, 0, card);
-
-                            // 更新其他卡牌的位置
-                            this.handPlayingCards.forEach((item, index) => {
-                                if (!item.container) {
-                                    return;
-                                }
-                                const itemTargetX =
-                                    this.getHandPlayingCardXByIndex(
-                                        item,
-                                        index,
-                                    );
-                                // 如果当前卡牌不是当前拖拽的卡牌，且目标卡牌需要移动
-                                if (
-                                    item !== card &&
-                                    itemTargetX !== item.container.x
-                                ) {
-                                    // 使用动画移动卡牌
-                                    this.tweens.add({
-                                        targets: item.container,
-                                        x: itemTargetX,
-                                        duration: 150,
-                                        ease: "Back.easeOut",
-                                    });
-                                }
-                            });
-                        }
-                    },
-                });
-
-                return itemPlayingCard;
+            itemPlayingCard.addToScene({
+                scene: this,
+                x: 0,
+                y: 0,
+                clickMode: PlayingCardClickModes.select,
+                enableDrag: true,
             });
+            if (itemPlayingCard.container) {
+                itemPlayingCard.setScale(
+                    calcScale(
+                        this.cameraWidth,
+                        itemPlayingCard.container.width,
+                        180,
+                    ),
+                );
+                itemPlayingCard.container.x = this.getHandPlayingCardXByIndex(
+                    itemPlayingCard,
+                    idx,
+                );
+            }
+            itemPlayingCard.setDragCallbacks({
+                onDragStart: (card) => {
+                    if (!card.container) {
+                        return;
+                    }
+                    // 拖拽开始时，将卡片移动到最前面
+                    this.playCardsContainer.moveTo(
+                        card.container,
+                        this.playCardsContainer.count("active", true) - 1,
+                    );
+                },
+                onDragEnd: (card) => {
+                    if (!card.container) {
+                        return;
+                    }
+                    // 找到当前卡牌在 handPlayingCards 中的索引 并+1
+                    // +1是因为 索引0是背景
+                    const targetIndex =
+                        this.handPlayingCards.findIndex(
+                            (item) => item.container === card.container,
+                        ) + 1;
+
+                    this.playCardsContainer.moveTo(card.container, targetIndex);
+                },
+                canDrop: (card, currentX, currentY, targetX, targetY) => {
+                    if (!card.container) {
+                        return false;
+                    }
+                    // 计算目标索引
+                    const targetIndex = this.getHandPlayingCardIndexByX(
+                        card,
+                        targetX,
+                    );
+
+                    // 计算应该吸附到的x坐标
+                    const x = this.getHandPlayingCardXByIndex(
+                        card,
+                        targetIndex,
+                    );
+
+                    // 返回吸附位置，y坐标拖拽前的y 因为可能拖拽前就是被选中的
+                    return {
+                        x,
+                        y: card.originalY,
+                    };
+                },
+                onDragMove: (card, currentX, currentY, targetX, targetY) => {
+                    if (!card.container) {
+                        return;
+                    }
+                    // 计算当前拖拽卡牌所在x对应的手牌索引
+                    const targetIndex = this.getHandPlayingCardIndexByX(
+                        card,
+                        targetX,
+                    );
+
+                    // 找到当前卡牌在 handPlayingCards 中的索引
+                    const currentIndex = this.handPlayingCards.findIndex(
+                        (item) => item.container === card.container,
+                    );
+
+                    // 如果targetIndex与当前索引不同，且在有效范围内，移动其他卡牌
+                    // 不用操作其他卡牌再container中的索引 因为他们本来就是有顺序的
+                    if (
+                        targetIndex !== currentIndex &&
+                        targetIndex >= 0 &&
+                        targetIndex < this.handPlayingCards.length
+                    ) {
+                        // 移除当前卡牌
+                        this.handPlayingCards.splice(currentIndex, 1);
+
+                        // 插入到目标位置
+                        this.handPlayingCards.splice(targetIndex, 0, card);
+
+                        // 更新其他卡牌的位置
+                        this.handPlayingCards.forEach((item, index) => {
+                            if (!item.container) {
+                                return;
+                            }
+                            const itemTargetX = this.getHandPlayingCardXByIndex(
+                                item,
+                                index,
+                            );
+                            // 如果当前卡牌不是当前拖拽的卡牌，且目标卡牌需要移动
+                            if (
+                                item !== card &&
+                                itemTargetX !== item.container.x
+                            ) {
+                                // 使用动画移动卡牌
+                                this.tweens.add({
+                                    targets: item.container,
+                                    x: itemTargetX,
+                                    duration: 150,
+                                    ease: "Back.easeOut",
+                                });
+                            }
+                        });
+                    }
+                },
+            });
+
+            return itemPlayingCard;
+        });
     }
 
     update(_time: number, delta: number): void {

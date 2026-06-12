@@ -1,6 +1,7 @@
-import { PLAYING_CARDS } from "@/config/index";
 import { Preferences } from "@capacitor/preferences";
 import { StatusBar, Style } from "@capacitor/status-bar";
+
+/** 本地存储工具 */
 export const preferences = {
     setItem: async (key: string, value: any) => {
         if (typeof value !== "string") {
@@ -49,11 +50,6 @@ export const setupStatusBar = async () => {
         console.log("StatusBar not available (running in browser)");
     }
 };
-
-/** 根据 key（如 "Hearts_Ace"）快速查找一张牌 */
-export function getPokerCard(key: string) {
-    return PLAYING_CARDS[key];
-}
 
 /**
  * 计算缩放比：将当前宽度缩放到目标宽度在设计稿（2670）下应占屏幕的比例

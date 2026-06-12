@@ -6,6 +6,8 @@ import { PlayingCard } from "@/game/entities/PlayingCard";
 import {
     BlindNames,
     DeckNames,
+    GameData,
+    IPlayingCard,
     PlayingCardValues,
     StakeNames,
     Suits,
@@ -16,7 +18,7 @@ import { PlayingCardClickModes } from "@/types";
 import { preferences } from "@/utils";
 import { cloneDeep } from "lodash";
 
-import { ALL_PLAYING_CARDS } from "@/config";
+import { INITIAL_PLAYING_CARDS_ARRAY } from "@/config";
 import { createButton } from "../ui";
 
 export class MainMenu extends BaseScene {
@@ -88,12 +90,14 @@ export class MainMenu extends BaseScene {
             "开始游戏",
             calcPx(width, 70),
             async () => {
-                const data = {
+                const data: GameData = {
                     deck: DeckNames.RedDeck,
                     stake: StakeNames.WhiteStake,
                     ante: 1,
                     round: 0,
-                    playingCard: cloneDeep(ALL_PLAYING_CARDS),
+                    completeDeck: cloneDeep(
+                        INITIAL_PLAYING_CARDS_ARRAY,
+                    ) as IPlayingCard[],
                     historyBlinds: [],
                     handLimit: 8,
                 };

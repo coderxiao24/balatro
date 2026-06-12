@@ -201,8 +201,8 @@ export interface GameData {
     ante: number;
     /** 回合数 */
     round: number;
-    /** 当前牌组 */
-    playingCard: IPlayingCard[];
+    /** 完整牌组 */
+    completeDeck: IPlayingCard[];
     /** 历史盲注 */
     historyBlinds: HistoryBlind[];
     /** 手牌上限 */
@@ -269,9 +269,8 @@ export enum HandTypes {
 
 /**
  * 牌型数据接口
- * @name 牌型配置
  */
-export interface HandData {
+export interface HandDataValue {
     /** 描述 */
     desc: string;
     /** 是否可见 */
@@ -297,5 +296,8 @@ export interface HandData {
     /** 本回合打出次数 */
     played_this_round: number;
     /** 示例牌组（5张） */
-    example: any[];
+    example: (IPlayingCard & {
+        /** 是否是计分牌 */
+        isScoring: boolean;
+    })[];
 }

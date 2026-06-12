@@ -2,16 +2,17 @@ import { AudioManager } from "@/game/manager/AudioManager";
 import {
     AnteScore,
     BlindCardTypes,
-    DeckNames,
     HandTypes,
-    HandData,
-    IPlayingCard,
     sceneNames,
     StakeNames,
+    Suits,
+    PlayingCardValues,
+    HandDataValue,
 } from "@/types";
 import BigNumber from "bignumber.js";
 
-export const scenesBGMMap: Record<sceneNames, () => void> = {
+/** 场景背景音乐映射 */
+export const scenesBGMMap: Readonly<Record<sceneNames, () => void>> = {
     [sceneNames.MainMenu]: () => {
         AudioManager.getInstance().playMusic("music1", {
             volume: 0.6,
@@ -42,7 +43,7 @@ export const scenesBGMMap: Record<sceneNames, () => void> = {
 /**
  *   赌注分数数组 索引代表底注等级
  */
-const anteScoreArr: AnteScore[] = [
+const anteScoreArray: Readonly<AnteScore[]> = [
     {
         [StakeNames.WhiteStake]: new BigNumber("100"),
         [StakeNames.GreenStake]: new BigNumber("100"),
@@ -175,14 +176,16 @@ const anteScoreArr: AnteScore[] = [
     },
 ];
 
-export const blindCardsBtnTextMap = {
+/** 盲注按钮文本映射 */
+export const blindCardsBtnTextMap: Readonly<Record<BlindCardTypes, string>> = {
     [BlindCardTypes.Active]: "选择",
     [BlindCardTypes.Next]: "下一回合",
     [BlindCardTypes.Pass]: "已被击败",
     [BlindCardTypes.Skip]: "跳过",
 };
 
-export const HandsData: Record<HandTypes, HandData> = {
+/** 牌型数据 */
+export const HandsDataMap: Readonly<Record<HandTypes, HandDataValue>> = {
     [HandTypes.FlushFive]: {
         desc: "5张相同点数和相同花色的牌",
         visible: false,
@@ -197,11 +200,36 @@ export const HandsData: Record<HandTypes, HandData> = {
         played: 0,
         played_this_round: 0,
         example: [
-            ["S_A", true],
-            ["S_A", true],
-            ["S_A", true],
-            ["S_A", true],
-            ["S_A", true],
+            {
+                name: `${PlayingCardValues.Ace} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.Ace,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Ace} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.Ace,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Ace} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.Ace,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Ace} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.Ace,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Ace} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.Ace,
+                isScoring: true,
+            },
         ],
     },
     [HandTypes.FlushHouse]: {
@@ -218,11 +246,36 @@ export const HandsData: Record<HandTypes, HandData> = {
         played: 0,
         played_this_round: 0,
         example: [
-            ["D_7", true],
-            ["D_7", true],
-            ["D_7", true],
-            ["D_4", true],
-            ["D_4", true],
+            {
+                name: `${PlayingCardValues.Seven} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.Seven,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Seven} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.Seven,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Seven} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.Seven,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Four} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.Four,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Four} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.Four,
+                isScoring: true,
+            },
         ],
     },
     [HandTypes.FiveOfAKind]: {
@@ -239,11 +292,36 @@ export const HandsData: Record<HandTypes, HandData> = {
         played: 0,
         played_this_round: 0,
         example: [
-            ["S_A", true],
-            ["H_A", true],
-            ["H_A", true],
-            ["C_A", true],
-            ["D_A", true],
+            {
+                name: `${PlayingCardValues.Ace} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.Ace,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Ace} of ${Suits.Hearts}`,
+                suit: Suits.Hearts,
+                value: PlayingCardValues.Ace,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Ace} of ${Suits.Hearts}`,
+                suit: Suits.Hearts,
+                value: PlayingCardValues.Ace,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Ace} of ${Suits.Clubs}`,
+                suit: Suits.Clubs,
+                value: PlayingCardValues.Ace,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Ace} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.Ace,
+                isScoring: true,
+            },
         ],
     },
     [HandTypes.RoyalFlush]: {
@@ -260,11 +338,36 @@ export const HandsData: Record<HandTypes, HandData> = {
         played: 0,
         played_this_round: 0,
         example: [
-            ["S_Q", true],
-            ["S_J", true],
-            ["S_T", true],
-            ["S_9", true],
-            ["S_8", true],
+            {
+                name: `${PlayingCardValues.Ace} of ${Suits.Clubs}`,
+                suit: Suits.Clubs,
+                value: PlayingCardValues.Ace,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.King} of ${Suits.Clubs}`,
+                suit: Suits.Clubs,
+                value: PlayingCardValues.King,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Queen} of ${Suits.Clubs}`,
+                suit: Suits.Clubs,
+                value: PlayingCardValues.Queen,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Jack} of ${Suits.Clubs}`,
+                suit: Suits.Clubs,
+                value: PlayingCardValues.Jack,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Ten} of ${Suits.Clubs}`,
+                suit: Suits.Clubs,
+                value: PlayingCardValues.Ten,
+                isScoring: true,
+            },
         ],
     },
     [HandTypes.StraightFlush]: {
@@ -281,11 +384,36 @@ export const HandsData: Record<HandTypes, HandData> = {
         played: 0,
         played_this_round: 0,
         example: [
-            ["S_Q", true],
-            ["S_J", true],
-            ["S_T", true],
-            ["S_9", true],
-            ["S_8", true],
+            {
+                name: `${PlayingCardValues.Queen} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.Queen,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Jack} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.Jack,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Ten} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.Ten,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Nine} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.Nine,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Eight} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.Eight,
+                isScoring: true,
+            },
         ],
     },
     [HandTypes.FourOfAKind]: {
@@ -302,11 +430,36 @@ export const HandsData: Record<HandTypes, HandData> = {
         played: 0,
         played_this_round: 0,
         example: [
-            ["S_J", true],
-            ["H_J", true],
-            ["C_J", true],
-            ["D_J", true],
-            ["C_3", false],
+            {
+                name: `${PlayingCardValues.Jack} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.Jack,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Jack} of ${Suits.Hearts}`,
+                suit: Suits.Hearts,
+                value: PlayingCardValues.Jack,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Jack} of ${Suits.Clubs}`,
+                suit: Suits.Clubs,
+                value: PlayingCardValues.Jack,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Jack} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.Jack,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Three} of ${Suits.Clubs}`,
+                suit: Suits.Clubs,
+                value: PlayingCardValues.Three,
+                isScoring: false,
+            },
         ],
     },
     [HandTypes.FullHouse]: {
@@ -323,11 +476,36 @@ export const HandsData: Record<HandTypes, HandData> = {
         played: 0,
         played_this_round: 0,
         example: [
-            ["H_K", true],
-            ["C_K", true],
-            ["D_K", true],
-            ["S_2", true],
-            ["D_2", true],
+            {
+                name: `${PlayingCardValues.King} of ${Suits.Hearts}`,
+                suit: Suits.Hearts,
+                value: PlayingCardValues.King,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.King} of ${Suits.Clubs}`,
+                suit: Suits.Clubs,
+                value: PlayingCardValues.King,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.King} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.King,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Two} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.Two,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Two} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.Two,
+                isScoring: true,
+            },
         ],
     },
     [HandTypes.Flush]: {
@@ -344,11 +522,36 @@ export const HandsData: Record<HandTypes, HandData> = {
         played: 0,
         played_this_round: 0,
         example: [
-            ["H_A", true],
-            ["H_K", true],
-            ["H_T", true],
-            ["H_5", true],
-            ["H_4", true],
+            {
+                name: `${PlayingCardValues.Ace} of ${Suits.Hearts}`,
+                suit: Suits.Hearts,
+                value: PlayingCardValues.Ace,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.King} of ${Suits.Hearts}`,
+                suit: Suits.Hearts,
+                value: PlayingCardValues.King,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Ten} of ${Suits.Hearts}`,
+                suit: Suits.Hearts,
+                value: PlayingCardValues.Ten,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Five} of ${Suits.Hearts}`,
+                suit: Suits.Hearts,
+                value: PlayingCardValues.Five,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Four} of ${Suits.Hearts}`,
+                suit: Suits.Hearts,
+                value: PlayingCardValues.Four,
+                isScoring: true,
+            },
         ],
     },
     [HandTypes.Straight]: {
@@ -365,11 +568,36 @@ export const HandsData: Record<HandTypes, HandData> = {
         played: 0,
         played_this_round: 0,
         example: [
-            ["D_J", true],
-            ["C_T", true],
-            ["C_9", true],
-            ["S_8", true],
-            ["H_7", true],
+            {
+                name: `${PlayingCardValues.Jack} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.Jack,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Ten} of ${Suits.Clubs}`,
+                suit: Suits.Clubs,
+                value: PlayingCardValues.Ten,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Nine} of ${Suits.Clubs}`,
+                suit: Suits.Clubs,
+                value: PlayingCardValues.Nine,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Eight} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.Eight,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Seven} of ${Suits.Hearts}`,
+                suit: Suits.Hearts,
+                value: PlayingCardValues.Seven,
+                isScoring: true,
+            },
         ],
     },
     [HandTypes.ThreeOfAKind]: {
@@ -386,11 +614,37 @@ export const HandsData: Record<HandTypes, HandData> = {
         played: 0,
         played_this_round: 0,
         example: [
-            ["S_T", true],
-            ["C_T", true],
-            ["D_T", true],
-            ["H_6", false],
-            ["D_5", false],
+            {
+                name: `${PlayingCardValues.Ten} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.Ten,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Ten} of ${Suits.Clubs}`,
+                suit: Suits.Clubs,
+                value: PlayingCardValues.Ten,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Ten} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.Ten,
+                isScoring: true,
+            },
+
+            {
+                name: `${PlayingCardValues.Six} of ${Suits.Hearts}`,
+                suit: Suits.Hearts,
+                value: PlayingCardValues.Six,
+                isScoring: false,
+            },
+            {
+                name: `${PlayingCardValues.Five} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.Five,
+                isScoring: false,
+            },
         ],
     },
     [HandTypes.TwoPair]: {
@@ -407,11 +661,36 @@ export const HandsData: Record<HandTypes, HandData> = {
         played: 0,
         played_this_round: 0,
         example: [
-            ["H_A", true],
-            ["D_A", true],
-            ["C_Q", false],
-            ["H_4", true],
-            ["C_4", true],
+            {
+                name: `${PlayingCardValues.Ace} of ${Suits.Hearts}`,
+                suit: Suits.Hearts,
+                value: PlayingCardValues.Ace,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Ace} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.Ace,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Queen} of ${Suits.Clubs}`,
+                suit: Suits.Clubs,
+                value: PlayingCardValues.Queen,
+                isScoring: false,
+            },
+            {
+                name: `${PlayingCardValues.Four} of ${Suits.Hearts}`,
+                suit: Suits.Hearts,
+                value: PlayingCardValues.Four,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Four} of ${Suits.Clubs}`,
+                suit: Suits.Clubs,
+                value: PlayingCardValues.Four,
+                isScoring: true,
+            },
         ],
     },
     [HandTypes.Pair]: {
@@ -428,11 +707,36 @@ export const HandsData: Record<HandTypes, HandData> = {
         played: 0,
         played_this_round: 0,
         example: [
-            ["S_K", false],
-            ["S_9", true],
-            ["D_9", true],
-            ["H_6", false],
-            ["D_3", false],
+            {
+                name: `${PlayingCardValues.King} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.King,
+                isScoring: false,
+            },
+            {
+                name: `${PlayingCardValues.Nine} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.Nine,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Nine} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.Nine,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Six} of ${Suits.Hearts}`,
+                suit: Suits.Hearts,
+                value: PlayingCardValues.Six,
+                isScoring: false,
+            },
+            {
+                name: `${PlayingCardValues.Three} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.Three,
+                isScoring: false,
+            },
         ],
     },
     [HandTypes.HighCard]: {
@@ -449,11 +753,36 @@ export const HandsData: Record<HandTypes, HandData> = {
         played: 0,
         played_this_round: 0,
         example: [
-            ["S_A", true],
-            ["D_Q", false],
-            ["D_9", false],
-            ["C_4", false],
-            ["D_3", false],
+            {
+                name: `${PlayingCardValues.Ace} of ${Suits.Spades}`,
+                suit: Suits.Spades,
+                value: PlayingCardValues.Ace,
+                isScoring: true,
+            },
+            {
+                name: `${PlayingCardValues.Queen} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.Queen,
+                isScoring: false,
+            },
+            {
+                name: `${PlayingCardValues.Nine} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.Nine,
+                isScoring: false,
+            },
+            {
+                name: `${PlayingCardValues.Four} of ${Suits.Clubs}`,
+                suit: Suits.Clubs,
+                value: PlayingCardValues.Four,
+                isScoring: false,
+            },
+            {
+                name: `${PlayingCardValues.Three} of ${Suits.Diamonds}`,
+                suit: Suits.Diamonds,
+                value: PlayingCardValues.Three,
+                isScoring: false,
+            },
         ],
     },
 };

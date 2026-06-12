@@ -11,7 +11,6 @@ import {
     PLAYING_CARD_ALL_VALUES,
     PLAYING_CARD_SUIT_ROW,
     PLAYING_CARD_VALUE_COL,
-    PLAYING_CARD_SUIT_NAME,
 } from "@/config";
 import { AudioManager } from "../manager/AudioManager";
 
@@ -110,7 +109,7 @@ export class PlayingCard {
         this.frame =
             PLAYING_CARD_SUIT_ROW[this.suit] * 13 +
             PLAYING_CARD_VALUE_COL[this.value];
-        this.name = `${this.value} of ${PLAYING_CARD_SUIT_NAME[this.suit]}`;
+        this.name = `${this.value} of ${this.suit}`;
         this.faceUp = faceUp;
     }
 
