@@ -2,7 +2,7 @@ import { calcPx, calcScale, preferences } from "@/utils";
 import { BaseScene } from "./BaseScene";
 import BlindCard from "../ui/BlindCard";
 import { BlindCardsType, BlindsType, PlayingCardClickMode } from "@/types";
-import { GameData } from "@/config";
+import { GameData } from "@/types";
 import Random from "@xiaokaixuan/random";
 import { cloneDeep } from "lodash";
 import { PlayingCard } from "../entities/PlayingCard";

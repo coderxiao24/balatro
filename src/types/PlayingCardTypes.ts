@@ -1,8 +1,12 @@
 // 扑克牌花色枚举（与精灵图行的顺序一致）
 export enum Suit {
+    /** 红心 */
     Hearts = "Hearts",
+    /** 梅花 */
     Clubs = "Clubs",
+    /** 方片 */
     Diamonds = "Diamonds",
+    /** 黑桃 */
     Spades = "Spades",
 }
 

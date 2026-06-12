@@ -1,4 +1,5 @@
 import BigNumber from "bignumber.js";
+import { PlayingCard } from "./PlayingCardTypes";
 
 /**
  *   牌组枚举
@@ -178,4 +179,116 @@ export enum BlindCardsType {
      *  @name 下一回合
      */
     Next = "Next",
+}
+
+/**
+ *   盲注卡片数据接口
+ */
+export interface BlindCardData {
+    CardsType: BlindCardsType;
+    [key: string]: any;
+}
+
+/**
+ *   游戏数据接口
+ */
+export interface GameData {
+    deck: Decks;
+    stake: Stakes;
+    ante: number;
+    round: number;
+    playingCard: PlayingCard[];
+    historyBlinds: BlindCardData[];
+    handLimit: number;
+}
+
+/**
+ *   手牌类型枚举
+ */
+export enum HandTypes {
+    /**
+     *  @name 同花五条
+     */
+    FlushFive = "FlushFive",
+    /**
+     *  @name 同花葫芦
+     */
+    FlushHouse = "FlushHouse",
+    /**
+     *  @name 五条
+     */
+    FiveOfAKind = "FiveOfAKind",
+    /**
+     *  @name 皇家同花顺
+     */
+    RoyalFlush = "RoyalFlush",
+    /**
+     *  @name 同花顺
+     */
+    StraightFlush = "StraightFlush",
+    /**
+     *  @name 四条
+     */
+    FourOfAKind = "FourOfAKind",
+    /**
+     *  @name 葫芦
+     */
+    FullHouse = "FullHouse",
+    /**
+     *  @name 同花
+     */
+    Flush = "Flush",
+    /**
+     *  @name 顺子
+     */
+    Straight = "Straight",
+    /**
+     *  @name 三条
+     */
+    ThreeOfAKind = "ThreeOfAKind",
+    /**
+     *  @name 两对
+     */
+    TwoPair = "TwoPair",
+    /**
+     *  @name 对子
+     */
+    Pair = "Pair",
+    /**
+     *  @name 高牌
+     */
+    HighCard = "HighCard",
+}
+
+/**
+ * 牌型数据接口
+ * @name 牌型配置
+ */
+export interface IHandData {
+    /** 描述 */
+    desc: string;
+    /** 是否可见 */
+    visible: boolean;
+    /** 排序权重 */
+    order: number;
+    /** 基础倍率 */
+    mult: number;
+    /** 基础筹码 */
+    chips: number;
+    /** Single-game Multiplier 在当前这一把游戏内的倍率 */
+    s_mult: number;
+    /** Single-game Chips 在当前这一把游戏内的筹码 */
+    s_chips: number;
+    /** 当前等级 */
+    level: number;
+    /** 牌型每次进行全局升级（Level up）时，增加的基础倍率。 */
+    l_mult: number;
+    /** 牌型每次进行全局升级（Level up）时，增加的基础筹码。 */
+    l_chips: number;
+    /** 累计打出次数 */
+    played: number;
+    /** 本回合打出次数 */
+    played_this_round: number;
+    /** 示例牌组（5张） */
+    example: any[];
 }
