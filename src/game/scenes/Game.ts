@@ -60,7 +60,7 @@ export class Game extends BaseScene {
 
         this.smallBlindCard = new BlindCard({
             scene: this,
-            blindsType: BlindNames.SmallBlind,
+            blindName: BlindNames.SmallBlind,
             CardsType:
                 this.gameData.historyBlinds[this.gameData.round - 1]
                     ?.CardsType || this.gameData.round % 3 === 0
@@ -73,7 +73,7 @@ export class Game extends BaseScene {
         });
         this.bigBlindCard = new BlindCard({
             scene: this,
-            blindsType: BlindNames.BigBlind,
+            blindName: BlindNames.BigBlind,
             CardsType:
                 this.gameData.historyBlinds[this.gameData.round - 1]
                     ?.CardsType || this.gameData.round % 3 === 1
@@ -82,7 +82,7 @@ export class Game extends BaseScene {
         });
         this.bossBlindCard = new BlindCard({
             scene: this,
-            blindsType: BlindNames.BossBlind,
+            blindName: BlindNames.TheWindow,
             CardsType:
                 this.gameData.historyBlinds[this.gameData.round - 1]
                     ?.CardsType || this.gameData.round % 3 === 2

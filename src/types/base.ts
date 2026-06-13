@@ -1,5 +1,5 @@
 import BigNumber from "bignumber.js";
-import { IPlayingCard } from "./PlayingCardTypes";
+import { IPlayingCard, Suits } from "./PlayingCardTypes";
 
 /**
  *   牌组名称枚举
@@ -133,21 +133,66 @@ export enum StakeNames {
  *   盲注名称枚举
  */
 export enum BlindNames {
-    /**
-     *  @name 小盲注
-     *  @description 无特殊效果。跳过此盲注可获得一个标签。通过奖励3$
-     */
-    SmallBlind = "SmallBlind",
-    /**
-     *  @name 大盲注
-     *  @description 无特殊效果。跳过此盲注可获得一个标签。通过奖励4$
-     */
-    BigBlind = "BigBlind",
-    /**
-     *  @name BOSS盲注
-     *  @description 有特殊效果并且不可跳过。通过奖励5$
-     */
-    BossBlind = "BossBlind",
+    /** 小盲注 - Small Blind */
+    SmallBlind = "Small Blind",
+    /** 大盲注 - Big Blind */
+    BigBlind = "Big Blind",
+    /** 钩子 - The Hook */
+    TheHook = "The Hook",
+    /** 公牛 - The Ox */
+    TheOx = "The Ox",
+    /** 房屋 - The House */
+    TheHouse = "The House",
+    /** 围墙 - The Wall */
+    TheWall = "The Wall",
+    /** 车轮 - The Wheel */
+    TheWheel = "The Wheel",
+    /** 手臂 - The Arm */
+    TheArm = "The Arm",
+    /** 梅花 - The Club */
+    TheClub = "The Club",
+    /** 鱼 - The Fish */
+    TheFish = "The Fish",
+    /** 灵媒 - The Psychic */
+    ThePsychic = "The Psychic",
+    /** 挑衅 - The Goad */
+    TheGoad = "The Goad",
+    /** 水 - The Water */
+    TheWater = "The Water",
+    /** 窗口 - The Window */
+    TheWindow = "The Window",
+    /** 镣铐 - The Manacle */
+    TheManacle = "The Manacle",
+    /** 眼睛 - The Eye */
+    TheEye = "The Eye",
+    /** 嘴巴 - The Mouth */
+    TheMouth = "The Mouth",
+    /** 植物 - The Plant */
+    ThePlant = "The Plant",
+    /** 巨蟒 - The Serpent */
+    TheSerpent = "The Serpent",
+    /** 支柱 - The Pillar */
+    ThePillar = "The Pillar",
+    /** 针 - The Needle */
+    TheNeedle = "The Needle",
+    /** 头部 - The Head */
+    TheHead = "The Head",
+    /** 牙齿 - The Tooth */
+    TheTooth = "The Tooth",
+    /** 燧石 - The Flint */
+    TheFlint = "The Flint",
+    /** 标记 - The Mark */
+    TheMark = "The Mark",
+    /** 琥珀之实 - Amber Acorn */
+    AmberAcorn = "Amber Acorn",
+    /** 翠绿之叶 - Verdant Leaf */
+    VerdantLeaf = "Verdant Leaf",
+    /** 靛紫之杯 - Violet Vessel */
+    VioletVessel = "Violet Vessel",
+    /** 绯红之心 - Crimson Heart */
+    CrimsonHeart = "Crimson Heart",
+    /** 蔚蓝之铃 - Cerulean Bell */
+    CeruleanBell = "Cerulean Bell",
 }
 
 /**
@@ -300,4 +345,52 @@ export interface HandDataValue {
         /** 是否是计分牌 */
         isScoring: boolean;
     })[];
+}
+
+/** 盲注的负面效果定义 */
+export interface BlindDebuff {
+    /** 被禁用的花色，如 'Clubs' | 'Spades' | 'Hearts' | 'Diamonds' */
+    suit?: Suits;
+    /** 打出的牌的数量限制 如果出的牌数量不等于该值，触发debuff */
+    h_size_ge?: number;
+    /** 人头牌限制标识，如 'face' 表示J/Q/K被削弱 */
+    is_face?: string;
+    /** 允许扩展其他未列出的debuff类型 */
+    [key: string]: any;
+}
+
+/** Boss盲注的出场规则与视觉配置 */
+export interface BossConfig {
+    /** 最早可出现的底注(Ante)编号 */
+    min: number;
+    /** 最晚可出现的底注编号 目前没有boss存在最晚回合出现限制 */
+    max: number;
+    /** 是否为终局决战Boss（仅Ante 8+特殊轮次出现） */
+    showdown?: boolean;
+}
+
+/** 单个盲注的完整数据定义 */
+export interface BlindDefinition {
+    /** 盲注显示名称（运行时可能经过本地化处理） */
+    name: string;
+    /** 当前存档中是否已被击败 */
+    defeated: boolean;
+    /** 内部排序ID（不等于实际出场顺序） */
+    order: number;
+    /** 击败后获得的基础金钱奖励 */
+    dollars: number;
+    /** 目标分数倍率（实际过关分 = 底注基础分 × mult） */
+    mult: number;
+    /** 动态变量数组，用于填充描述文本占位符（如 "localize:ph_most_played"） */
+    vars: (string | number)[];
+    /** 自定义debuff描述文本，为空时使用默认模板 */
+    debuff_text?: string;
+    /** 该盲注施加的具体负面效果 */
+    debuff: BlindDebuff;
+    /** 精灵图(Sprite Atlas)中的渲染坐标 */
+    pos: { x: number; y: number };
+    /** Boss专属配置，普通小盲/大盲无此字段 */
+    boss?: BossConfig;
+    /** Boss UI主题颜色 */
+    boss_colour?: string;
 }

@@ -37,6 +37,14 @@ export class Preloader extends BaseScene {
             frameWidth: 142,
             frameHeight: 190,
         });
+        this.load.spritesheet(
+            "BlindChips",
+            "assets/textures/2x/BlindChips.png",
+            {
+                frameWidth: 68,
+                frameHeight: 68,
+            },
+        );
         this.load.image("balatro", "assets/textures/2x/balatro.png");
 
         this.load.audio("cardSlide1", "assets/sounds/cardSlide1.ogg");

@@ -4,7 +4,6 @@ import { BalatroSplash } from "@/game/entities/shaders/BalatroSplash";
 import { calcPx, calcScale } from "@/utils";
 import { PlayingCard } from "@/game/entities/PlayingCard";
 import {
-    BlindNames,
     DeckNames,
     GameData,
     IPlayingCard,
