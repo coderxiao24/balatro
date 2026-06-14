@@ -70,6 +70,8 @@ export class Game extends BaseScene {
                 await this.hideBlindCards();
                 this.startNextRound();
             },
+            ante: this.gameData.ante,
+            stakeName: this.gameData.stake,
         });
         this.bigBlindCard = new BlindCard({
             scene: this,
@@ -79,6 +81,8 @@ export class Game extends BaseScene {
                     ?.CardsType || this.gameData.round % 3 === 1
                     ? BlindCardTypes.Active
                     : BlindCardTypes.Next,
+            ante: this.gameData.ante,
+            stakeName: this.gameData.stake,
         });
         this.bossBlindCard = new BlindCard({
             scene: this,
@@ -88,6 +92,8 @@ export class Game extends BaseScene {
                     ?.CardsType || this.gameData.round % 3 === 2
                     ? BlindCardTypes.Active
                     : BlindCardTypes.Next,
+            ante: this.gameData.ante,
+            stakeName: this.gameData.stake,
         });
 
         AudioManager.getInstance().playSound(this.scene.key, "cancel");

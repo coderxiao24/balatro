@@ -45,7 +45,7 @@ export const scenesBGMMap: Readonly<Record<sceneNames, () => void>> = {
 /**
  *   赌注分数数组 索引代表底注等级
  */
-const anteScoreArray: Readonly<AnteScore[]> = [
+export const anteScoreArray: Readonly<AnteScore[]> = [
     {
         [StakeNames.WhiteStake]: new BigNumber("100"),
         [StakeNames.GreenStake]: new BigNumber("100"),
