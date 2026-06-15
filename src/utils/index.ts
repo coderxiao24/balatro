@@ -1,7 +1,6 @@
 import { BlindsDataMap, stakeDataMap } from "@/config";
 import { BlindNames, StakeNames } from "@/types";
 import { Preferences } from "@capacitor/preferences";
-import { StatusBar, Style } from "@capacitor/status-bar";
 import BigNumber from "bignumber.js";
 
 /** 本地存储工具 */
@@ -42,16 +41,6 @@ export const preferences = {
         });
         return res;
     },
-};
-
-export const setupStatusBar = async () => {
-    try {
-        // 只设置样式和隐藏，不设置 overlay
-        await StatusBar.setStyle({ style: Style.Dark });
-        await StatusBar.hide();
-    } catch (error) {
-        console.log("StatusBar not available (running in browser)");
-    }
 };
 
 /**
