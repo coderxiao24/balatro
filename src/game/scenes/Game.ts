@@ -14,6 +14,7 @@ import { PlayingCard } from "../entities/PlayingCard";
 import { Actions, Math } from "phaser";
 import { BalatroBackground } from "@/game/entities/shaders/BalatroBackground";
 import { AudioManager } from "../manager/AudioManager";
+
 export class Game extends BaseScene {
     bigBlindCard: BlindCard;
     smallBlindCard: BlindCard;
@@ -27,6 +28,7 @@ export class Game extends BaseScene {
     private bgShader: BalatroBackground;
     playCardsContainerWidth: number;
     playCardsContainerHeight: number;
+    random: Random = new Random();
     constructor() {
         super("Game");
     }
@@ -63,9 +65,10 @@ export class Game extends BaseScene {
             blindName: BlindNames.SmallBlind,
             CardsType:
                 this.gameData.historyBlinds[this.gameData.round - 1]
-                    ?.CardsType || this.gameData.round % 3 === 0
+                    ?.CardsType ||
+                (this.gameData.round % 3 === 0
                     ? BlindCardTypes.Active
-                    : BlindCardTypes.Next,
+                    : BlindCardTypes.Next),
             chooseBtnClick: async () => {
                 await this.hideBlindCards();
                 this.startNextRound();
@@ -78,20 +81,23 @@ export class Game extends BaseScene {
             blindName: BlindNames.BigBlind,
             CardsType:
                 this.gameData.historyBlinds[this.gameData.round - 1]
-                    ?.CardsType || this.gameData.round % 3 === 1
+                    ?.CardsType ||
+                (this.gameData.round % 3 === 1
                     ? BlindCardTypes.Active
-                    : BlindCardTypes.Next,
+                    : BlindCardTypes.Next),
             ante: this.gameData.ante,
             stakeName: this.gameData.stake,
         });
+
         this.bossBlindCard = new BlindCard({
             scene: this,
-            blindName: BlindNames.TheWindow,
+            blindName: this.random.pick(Object.values(BlindNames)),
             CardsType:
                 this.gameData.historyBlinds[this.gameData.round - 1]
-                    ?.CardsType || this.gameData.round % 3 === 2
+                    ?.CardsType ||
+                (this.gameData.round % 3 === 2
                     ? BlindCardTypes.Active
-                    : BlindCardTypes.Next,
+                    : BlindCardTypes.Next),
             ante: this.gameData.ante,
             stakeName: this.gameData.stake,
         });
@@ -131,8 +137,7 @@ export class Game extends BaseScene {
         groupBg.setRounded(calcPx(this.cameraWidth, 12));
         this.playCardsContainer.addAt(groupBg, 0);
 
-        const random = new Random();
-        this.tempPlayingCards = random.shuffle(this.gameData.completeDeck);
+        this.tempPlayingCards = this.random.shuffle(this.gameData.completeDeck);
 
         this.createHandPlayingCards(
             this.tempPlayingCards.splice(0, this.gameData.handLimit),

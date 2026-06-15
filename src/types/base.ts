@@ -196,15 +196,6 @@ export enum BlindNames {
 }
 
 /**
- *   底注对应赌注分数接口
- */
-export interface AnteScore {
-    [StakeNames.WhiteStake]: BigNumber;
-    [StakeNames.GreenStake]: BigNumber;
-    [StakeNames.PurpleStake]: BigNumber;
-}
-
-/**
  *   选择盲注的卡片ui的类型枚举
  */
 export enum BlindCardTypes {
@@ -371,7 +362,7 @@ export interface BossConfig {
 
 /** 单个盲注的完整数据定义 */
 export interface BlindDefinition {
-    /** 盲注显示名称（运行时可能经过本地化处理） */
+    /** 盲注显示名称 */
     name: string;
     /** 当前存档中是否已被击败 */
     defeated: boolean;
@@ -393,4 +384,18 @@ export interface BlindDefinition {
     boss?: BossConfig;
     /** Boss UI主题颜色 */
     boss_colour?: string;
+}
+
+/** 单个赌注的完整数据定义 */
+export interface StakeDefinition {
+    /** 赌注显示名称 */
+    name: string;
+    /** 是否已解锁 */
+    unlocked: boolean;
+    /** 排序序号 */
+    order: number;
+    /** 位置坐标 */
+    pos: { x: number; y: number };
+    /** 筹码等级 */
+    stake_level: number;
 }

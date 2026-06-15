@@ -1,6 +1,5 @@
 import { AudioManager } from "@/game/manager/AudioManager";
 import {
-    AnteScore,
     BlindCardTypes,
     HandTypes,
     sceneNames,
@@ -10,8 +9,8 @@ import {
     HandDataValue,
     BlindNames,
     BlindDefinition,
+    StakeDefinition,
 } from "@/types";
-import BigNumber from "bignumber.js";
 
 /** 场景背景音乐映射 */
 export const scenesBGMMap: Readonly<Record<sceneNames, () => void>> = {
@@ -41,142 +40,6 @@ export const scenesBGMMap: Readonly<Record<sceneNames, () => void>> = {
     [sceneNames.Preloader]: () => {},
     [sceneNames.Splash]: () => {},
 };
-
-/**
- *   赌注分数数组 索引代表底注等级
- */
-export const anteScoreArray: Readonly<AnteScore[]> = [
-    {
-        [StakeNames.WhiteStake]: new BigNumber("100"),
-        [StakeNames.GreenStake]: new BigNumber("100"),
-        [StakeNames.PurpleStake]: new BigNumber("100"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("300"),
-        [StakeNames.GreenStake]: new BigNumber("300"),
-        [StakeNames.PurpleStake]: new BigNumber("300"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("800"),
-        [StakeNames.GreenStake]: new BigNumber("900"),
-        [StakeNames.PurpleStake]: new BigNumber("1000"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("2000"),
-        [StakeNames.GreenStake]: new BigNumber("2600"),
-        [StakeNames.PurpleStake]: new BigNumber("3200"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("5000"),
-        [StakeNames.GreenStake]: new BigNumber("8000"),
-        [StakeNames.PurpleStake]: new BigNumber("9000"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("11000"),
-        [StakeNames.GreenStake]: new BigNumber("20000"),
-        [StakeNames.PurpleStake]: new BigNumber("25000"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("20000"),
-        [StakeNames.GreenStake]: new BigNumber("36000"),
-        [StakeNames.PurpleStake]: new BigNumber("60000"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("35000"),
-        [StakeNames.GreenStake]: new BigNumber("60000"),
-        [StakeNames.PurpleStake]: new BigNumber("110000"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("50000"),
-        [StakeNames.GreenStake]: new BigNumber("100000"),
-        [StakeNames.PurpleStake]: new BigNumber("200000"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("110000"),
-        [StakeNames.GreenStake]: new BigNumber("200000"),
-        [StakeNames.PurpleStake]: new BigNumber("410000"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("560000"),
-        [StakeNames.GreenStake]: new BigNumber("1000000"),
-        [StakeNames.PurpleStake]: new BigNumber("2000000"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("7200000"),
-        [StakeNames.GreenStake]: new BigNumber("13000000"),
-        [StakeNames.PurpleStake]: new BigNumber("26000000"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("300000000"),
-        [StakeNames.GreenStake]: new BigNumber("540000000"),
-        [StakeNames.PurpleStake]: new BigNumber("1000000000"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("47000000000"),
-        [StakeNames.GreenStake]: new BigNumber("84000000000"),
-        [StakeNames.PurpleStake]: new BigNumber("1.60E+11"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("2.90E+13"),
-        [StakeNames.GreenStake]: new BigNumber("5.30E+13"),
-        [StakeNames.PurpleStake]: new BigNumber("1.00E+14"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("7.70E+16"),
-        [StakeNames.GreenStake]: new BigNumber("1.30E+17"),
-        [StakeNames.PurpleStake]: new BigNumber("2.70E+17"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("8.60E+20"),
-        [StakeNames.GreenStake]: new BigNumber("1.50E+21"),
-        [StakeNames.PurpleStake]: new BigNumber("3.10E+21"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("4.20E+25"),
-        [StakeNames.GreenStake]: new BigNumber("7.60E+25"),
-        [StakeNames.PurpleStake]: new BigNumber("1.50E+26"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("9.20E+30"),
-        [StakeNames.GreenStake]: new BigNumber("1.50E+31"),
-        [StakeNames.PurpleStake]: new BigNumber("3.30E+31"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("9.20E+36"),
-        [StakeNames.GreenStake]: new BigNumber("1.60E+37"),
-        [StakeNames.PurpleStake]: new BigNumber("3.30E+37"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("4.30E+43"),
-        [StakeNames.GreenStake]: new BigNumber("7.70E+43"),
-        [StakeNames.PurpleStake]: new BigNumber("1.50E+44"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("9.70E+50"),
-        [StakeNames.GreenStake]: new BigNumber("1.70E+51"),
-        [StakeNames.PurpleStake]: new BigNumber("3.40E+51"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("1.00E+59"),
-        [StakeNames.GreenStake]: new BigNumber("1.90E+59"),
-        [StakeNames.PurpleStake]: new BigNumber("3.80E+59"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("5.60E+67"),
-        [StakeNames.GreenStake]: new BigNumber("1.00E+68"),
-        [StakeNames.PurpleStake]: new BigNumber("2.10E+68"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("1.60E+77"),
-        [StakeNames.GreenStake]: new BigNumber("2.90E+77"),
-        [StakeNames.PurpleStake]: new BigNumber("5.90E+77"),
-    },
-    {
-        [StakeNames.WhiteStake]: new BigNumber("2.40E+87"),
-        [StakeNames.GreenStake]: new BigNumber("4.40E+87"),
-        [StakeNames.PurpleStake]: new BigNumber("8.80E+87"),
-    },
-];
 
 /** 盲注按钮文本映射 */
 export const blindCardsBtnTextMap: Readonly<Record<BlindCardTypes, string>> = {
@@ -789,6 +652,7 @@ export const HandsDataMap: Readonly<Record<HandTypes, HandDataValue>> = {
     },
 };
 
+/** 盲注数据映射 */
 export const BlindsDataMap: Readonly<Record<BlindNames, BlindDefinition>> = {
     [BlindNames.SmallBlind]: {
         name: "小盲注",
@@ -1147,5 +1011,89 @@ export const BlindsDataMap: Readonly<Record<BlindNames, BlindDefinition>> = {
         pos: { x: 0, y: 26 },
         boss: { showdown: true, min: 10, max: 10 },
         boss_colour: "#009cfd",
+    },
+};
+
+/** 赌注数据映射 */
+export const stakeDataMap: Readonly<Record<StakeNames, StakeDefinition>> = {
+    [StakeNames.WhiteStake]: {
+        name: "White Chip",
+        unlocked: true,
+        order: 1,
+        pos: {
+            x: 0,
+            y: 0,
+        },
+        stake_level: 1,
+    },
+    [StakeNames.RedStake]: {
+        name: "Red Chip",
+        unlocked: false,
+        order: 2,
+        pos: {
+            x: 1,
+            y: 0,
+        },
+        stake_level: 2,
+    },
+    [StakeNames.GreenStake]: {
+        name: "Green Chip",
+        unlocked: false,
+        order: 3,
+        pos: {
+            x: 2,
+            y: 0,
+        },
+        stake_level: 3,
+    },
+    [StakeNames.BlackStake]: {
+        name: "Black Chip",
+        unlocked: false,
+        order: 4,
+        pos: {
+            x: 4,
+            y: 0,
+        },
+        stake_level: 4,
+    },
+    [StakeNames.BlueStake]: {
+        name: "Blue Chip",
+        unlocked: false,
+        order: 5,
+        pos: {
+            x: 3,
+            y: 0,
+        },
+        stake_level: 5,
+    },
+    [StakeNames.PurpleStake]: {
+        name: "Purple Chip",
+        unlocked: false,
+        order: 6,
+        pos: {
+            x: 0,
+            y: 1,
+        },
+        stake_level: 6,
+    },
+    [StakeNames.OrangeStake]: {
+        name: "Orange Chip",
+        unlocked: false,
+        order: 7,
+        pos: {
+            x: 1,
+            y: 1,
+        },
+        stake_level: 7,
+    },
+    [StakeNames.GoldStake]: {
+        name: "Gold Chip",
+        unlocked: false,
+        order: 8,
+        pos: {
+            x: 2,
+            y: 1,
+        },
+        stake_level: 8,
     },
 };

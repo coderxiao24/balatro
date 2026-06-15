@@ -1,8 +1,8 @@
 import { BlindCardTypes, BlindNames, StakeNames } from "@/types";
-import { calcPx, calcScale } from "@/utils";
+import { calcPx, calcScale, getAmount } from "@/utils";
 import { GameObjects } from "phaser";
 import { createButton } from ".";
-import { anteScoreArray, blindCardsBtnTextMap, BlindsDataMap } from "@/config";
+import { blindCardsBtnTextMap, BlindsDataMap } from "@/config";
 import BigNumber from "bignumber.js";
 export default class BlindCard extends GameObjects.Container {
     container: GameObjects.Container;
@@ -182,9 +182,7 @@ export default class BlindCard extends GameObjects.Container {
                 -this.cardHeight / 2 + calcPx(this.cameraWidth, 444),
                 // @todo 后续调整 赌注类型和底注分数关系
                 // @ts-ignore
-                (anteScoreArray[this.ante][this.stakeName] as BigNumber)
-                    .times(BlindsDataMap[this.blindName].mult)
-                    .toString(),
+                getAmount(this.ante, this.stakeName, this.blindName).toString(),
                 {
                     fontSize: calcPx(this.cameraWidth, 34),
                     color: "#fff",
@@ -252,7 +250,7 @@ export default class BlindCard extends GameObjects.Container {
         this.currentScene.anims.create({
             key,
             frames: frames,
-            frameRate: 12,
+            frameRate: 10,
             repeat: -1,
         });
 
@@ -260,7 +258,7 @@ export default class BlindCard extends GameObjects.Container {
         this.blindChip.setScale(
             calcScale(this.cameraWidth, this.blindChip.width, 128) * (68 / 64),
         );
-        console.log("666x", this.blindChip.displayWidth);
+
         this.blindChip.play(key);
     }
 }
