@@ -6,8 +6,8 @@
  * 2. 未来可在此添加更多通用功能
  */
 
+import { EventBus } from "@/EventBus";
 import { Scene } from "phaser";
-import { EventBus } from "../EventBus";
 
 export class BaseScene extends Scene {
     constructor(config?: string | Phaser.Types.Scenes.SettingsConfig) {

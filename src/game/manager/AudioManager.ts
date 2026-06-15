@@ -13,8 +13,8 @@
  * - SFX（音效）：同一场景同一 key 可以有多个实例同时播放，场景切换时自动清理
  */
 
-import { EventBus } from "@/game/EventBus";
 import { scenesBGMMap } from "@/config";
+import { EventBus } from "@/EventBus";
 import { sceneNames } from "@/types";
 
 export interface AudioOptions {
