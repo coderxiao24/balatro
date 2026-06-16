@@ -87,17 +87,20 @@ export default class BlindCard extends GameObjects.Container {
                 0,
                 0,
                 calcPx(this.cameraWidth, 360),
-                calcPx(this.cameraWidth, 870),
+                calcPx(this.cameraWidth, 864),
+                0x000000,
+                0.2,
             )
-            .setRounded(calcPx(this.cameraWidth, 16))
-            .setStrokeStyle(calcPx(this.cameraWidth, 4), 0x000000, 0.1);
+            .setStrokeStyle(calcPx(this.cameraWidth, 5), 0x000000, 0.2)
+            .setRounded(calcPx(this.cameraWidth, 16));
 
-        const colorBorder = this.currentScene.add
+        const cardBg = this.currentScene.add
             .rectangle(
                 0,
                 0,
                 calcPx(this.cameraWidth, 344),
-                calcPx(this.cameraWidth, 862),
+                calcPx(this.cameraWidth, 848),
+                0x454f51,
             )
             .setRounded(calcPx(this.cameraWidth, 16))
             .setStrokeStyle(
@@ -111,16 +114,6 @@ export default class BlindCard extends GameObjects.Container {
                         ),
             );
 
-        const cardBg = this.currentScene.add
-            .rectangle(
-                0,
-                0,
-                calcPx(this.cameraWidth, 344),
-                calcPx(this.cameraWidth, 862),
-                0x454f51,
-            )
-            .setRounded(calcPx(this.cameraWidth, 16));
-
         const blindInfoBorder = this.currentScene.add
             .rectangle(
                 0,
@@ -129,6 +122,7 @@ export default class BlindCard extends GameObjects.Container {
                     calcPx(this.cameraWidth, 530) / 2,
                 calcPx(this.cameraWidth, 314),
                 calcPx(this.cameraWidth, 520),
+                0x435153,
             )
             .setRounded(calcPx(this.cameraWidth, 12))
             .setStrokeStyle(calcPx(this.cameraWidth, 5), 0x4f6368);
@@ -200,7 +194,6 @@ export default class BlindCard extends GameObjects.Container {
 
         this.container.add([
             cradShadow,
-            colorBorder,
             cardBg,
             blindInfoBorder,
             chooseBtn,
@@ -250,15 +243,15 @@ export default class BlindCard extends GameObjects.Container {
             )
             .setOrigin(0, 0.5);
 
-        const group = this.currentScene.add.container(0, 0, [
-            stakeChipIcon,
-            scoreText,
-        ]);
+        const group = this.currentScene.add.container(
+            0,
+            -this.cardHeight / 2 + calcPx(this.cameraWidth, 444),
+            [stakeChipIcon, scoreText],
+        );
 
         const bounds = group.getBounds();
 
         group.x = 0 - bounds.width / 2;
-        group.y = -this.cardHeight / 2 + calcPx(this.cameraWidth, 444);
         return group;
     }
 
