@@ -91,8 +91,8 @@ export class MainMenu extends BaseScene {
             async () => {
                 const data: GameData = {
                     deck: DeckNames.RedDeck,
-                    stake: StakeNames.GoldStake,
-                    ante: 3,
+                    stake: StakeNames.WhiteStake,
+                    ante: 1,
                     round: 0,
                     completeDeck: cloneDeep(
                         INITIAL_PLAYING_CARDS_ARRAY,

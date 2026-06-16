@@ -14,6 +14,7 @@ import { PlayingCard } from "../entities/PlayingCard";
 import { Actions, Math } from "phaser";
 import { BalatroBackground } from "@/game/entities/shaders/BalatroBackground";
 import { AudioManager } from "../manager/AudioManager";
+import { BlindsDataMap } from "@/config";
 
 export class Game extends BaseScene {
     bigBlindCard: BlindCard;
@@ -89,9 +90,12 @@ export class Game extends BaseScene {
             stakeName: this.gameData.stake,
         });
 
+        console.log(666, Object.entries(BlindsDataMap));
         this.bossBlindCard = new BlindCard({
             scene: this,
-            blindName: this.random.pick(Object.values(BlindNames)),
+            blindName: this.random.pick(
+                Object.entries(BlindsDataMap).filter((blind) => blind[1].boss),
+            )[0] as BlindNames,
             CardsType:
                 this.gameData.historyBlinds[this.gameData.round - 1]
                     ?.CardsType ||
