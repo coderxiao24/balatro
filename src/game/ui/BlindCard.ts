@@ -215,6 +215,30 @@ export default class BlindCard extends GameObjects.Container {
         });
     }
     createStakeChipAndScore() {
+        const Bg = this.currentScene.add
+            .rectangle(
+                0,
+                0,
+                calcPx(this.cameraWidth, 300),
+                calcPx(this.cameraWidth, 127),
+                0x364345,
+            )
+            .setRounded(calcPx(this.cameraWidth, 12));
+
+        const minScoreText = this.currentScene.add
+            .text(
+                0,
+                -calcPx(this.cameraWidth, 127) / 2 +
+                    calcPx(this.cameraWidth, 1),
+                "最低得分",
+                {
+                    fontSize: calcPx(this.cameraWidth, 23),
+                    color: "#FFF",
+                    fontFamily: "NotoSansSC",
+                },
+            )
+            .setOrigin(0.5, 0);
+
         const stakeChipIcon = this.currentScene.add
             .image(
                 0,
@@ -245,14 +269,51 @@ export default class BlindCard extends GameObjects.Container {
 
         const group = this.currentScene.add.container(
             0,
-            -this.cardHeight / 2 + calcPx(this.cameraWidth, 444),
+            -calcPx(this.cameraWidth, 127) / 2 +
+                calcPx(this.cameraWidth, 37) +
+                calcPx(this.cameraWidth, 46) / 2,
             [stakeChipIcon, scoreText],
         );
 
         const bounds = group.getBounds();
 
         group.x = 0 - bounds.width / 2;
-        return group;
+
+        const rewardText = this.currentScene.add
+            .text(0, 0, "奖励 : ", {
+                fontSize: calcPx(this.cameraWidth, 28),
+                color: "#FFF",
+                fontFamily: "NotoSansSC",
+            })
+            .setOrigin(0, 0.5);
+
+        const rewardAmountText = this.currentScene.add
+            .text(rewardText.displayWidth, 0, "$$$+", {
+                fontSize: calcPx(this.cameraWidth, 28),
+                color: "#F3B959",
+                fontFamily: "NotoSansSC",
+            })
+            .setOrigin(0, 0.5);
+
+        const rewardGroup = this.currentScene.add.container(
+            0,
+            -calcPx(this.cameraWidth, 127) / 2 +
+                calcPx(this.cameraWidth, 90) +
+                calcPx(this.cameraWidth, 28) / 2,
+            [rewardText, rewardAmountText],
+        );
+
+        rewardGroup.x = 0 - rewardGroup.getBounds().width / 2;
+
+        const container = this.currentScene.add.container(
+            0,
+            -this.cardHeight / 2 +
+                calcPx(this.cameraWidth, 407) +
+                calcPx(this.cameraWidth, 127) / 2,
+            [Bg, minScoreText, group, rewardGroup],
+        );
+
+        return container;
     }
 
     // 隐藏
