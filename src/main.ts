@@ -6,7 +6,8 @@ import { AUTO, Game, Scale } from "phaser";
 import { Preloader } from "@/game/scenes/Preloader";
 import { Splash } from "@/game/scenes/Splash";
 import { AudioManager } from "@/game/manager/AudioManager";
-
+import BigNumber from "bignumber.js";
+BigNumber.config({ EXPONENTIAL_AT: 10 });
 const config: Phaser.Types.Core.GameConfig = {
     type: AUTO,
     scene: [Boot, Preloader, Splash, MainMenu, MainGame, GameOver],

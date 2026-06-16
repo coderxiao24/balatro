@@ -54,7 +54,7 @@ export class MainMenu extends BaseScene {
 
         this.logo = this.add.image(width / 2, calcPx(width, 460), "balatro");
 
-        this.logo.setScale(calcScale(width, this.logo.height, 863));
+        this.logo.setScale(calcScale(width, this.logo.displayHeight, 863));
         const A = new PlayingCard(Suits.Spades, PlayingCardValues.Ace);
         A.addToScene({
             scene: this,
@@ -65,7 +65,7 @@ export class MainMenu extends BaseScene {
         });
 
         if (A.container) {
-            A.setScale(calcScale(width, A.container.width, 240));
+            A.setScale(calcScale(width, A.container.displayWidth, 240));
         }
 
         // 设置拖拽回调，包括放置验证
@@ -91,8 +91,8 @@ export class MainMenu extends BaseScene {
             async () => {
                 const data: GameData = {
                     deck: DeckNames.RedDeck,
-                    stake: StakeNames.WhiteStake,
-                    ante: 1,
+                    stake: StakeNames.GoldStake,
+                    ante: 3,
                     round: 0,
                     completeDeck: cloneDeep(
                         INITIAL_PLAYING_CARDS_ARRAY,

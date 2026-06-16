@@ -1,9 +1,9 @@
 import { BlindCardTypes, BlindNames, StakeNames } from "@/types";
-import { calcPx, calcScale, getAmount } from "@/utils";
+import { calcPx, calcScale, getScore } from "@/utils";
 import { GameObjects } from "phaser";
 import { createButton } from ".";
-import { blindCardsBtnTextMap, BlindsDataMap } from "@/config";
-import BigNumber from "bignumber.js";
+import { blindCardsBtnTextMap, BlindsDataMap, stakeDataMap } from "@/config";
+
 export default class BlindCard extends GameObjects.Container {
     container: GameObjects.Container;
     CardsType: BlindCardTypes;
@@ -19,7 +19,7 @@ export default class BlindCard extends GameObjects.Container {
     private cardHeight: number;
     private spacing: number;
     private index: number;
-    blindChip: GameObjects.Sprite;
+
     ante: number;
     stakeName: StakeNames;
 
@@ -162,34 +162,9 @@ export default class BlindCard extends GameObjects.Container {
             )
             .setOrigin(0.5);
 
-        this.createBlindChip();
+        const blindChip = this.createBlindChip();
 
-        //  const value =this.blindName === BlindNames.SmallBlind
-        //                     ? 0x1478b4
-        //                     : this.blindName === BlindNames.BigBlind
-        //                       ? 0xab7b1b
-        //                       : parseInt(
-        //                             (
-        //                                 BlindsDataMap[this.blindName]
-        //                                     .boss_colour as string
-        //                             ).replace(/^#/, ""),
-        //                             16,
-        //                         )
-
-        const minScoreText = this.currentScene.add
-            .text(
-                0,
-                -this.cardHeight / 2 + calcPx(this.cameraWidth, 444),
-                // @todo 后续调整 赌注类型和底注分数关系
-                // @ts-ignore
-                getAmount(this.ante, this.stakeName, this.blindName).toString(),
-                {
-                    fontSize: calcPx(this.cameraWidth, 34),
-                    color: "#fff",
-                    fontFamily: "NotoSansSC",
-                },
-            )
-            .setOrigin(0.5);
+        const stakeChipAndScoreGroup = this.createStakeChipAndScore();
 
         this.container.add([
             cradShadow,
@@ -198,8 +173,8 @@ export default class BlindCard extends GameObjects.Container {
             blindInfoBorder,
             chooseBtn,
             blindNameText,
-            this.blindChip,
-            minScoreText,
+            blindChip,
+            stakeChipAndScoreGroup,
         ]);
 
         if (this.CardsType !== BlindCardTypes.Active) {
@@ -213,6 +188,46 @@ export default class BlindCard extends GameObjects.Container {
             ease: "Back.easeOut",
             onComplete: () => {},
         });
+    }
+    createStakeChipAndScore() {
+        const stakeChipIcon = this.currentScene.add
+            .image(
+                0,
+                0,
+                "chips",
+                stakeDataMap[this.stakeName].pos.x +
+                    5 * stakeDataMap[this.stakeName].pos.y,
+            )
+            .setOrigin(0, 0.5);
+
+        stakeChipIcon.setScale(
+            calcScale(this.cameraWidth, stakeChipIcon.displayWidth, 46) *
+                (58 / 54),
+        );
+
+        const scoreText = this.currentScene.add
+            .text(
+                stakeChipIcon.displayWidth + calcPx(this.cameraWidth, 12),
+                0,
+                getScore(this.ante, this.stakeName, this.blindName).toString(),
+                {
+                    fontSize: calcPx(this.cameraWidth, 46),
+                    color: "#FC5F54",
+                    fontFamily: "NotoSansSC",
+                },
+            )
+            .setOrigin(0, 0.5);
+
+        const group = this.currentScene.add.container(0, 0, [
+            stakeChipIcon,
+            scoreText,
+        ]);
+
+        const bounds = group.getBounds();
+
+        group.x = 0 - bounds.width / 2;
+        group.y = -this.cardHeight / 2 + calcPx(this.cameraWidth, 444);
+        return group;
     }
 
     // 隐藏
@@ -232,7 +247,7 @@ export default class BlindCard extends GameObjects.Container {
     }
 
     createBlindChip() {
-        this.blindChip = this.currentScene.add.sprite(
+        const blindChip = this.currentScene.add.sprite(
             0,
             -this.cardHeight / 2 +
                 calcPx(this.cameraWidth, 266) +
@@ -255,10 +270,12 @@ export default class BlindCard extends GameObjects.Container {
         });
 
         // 68 / 64 是因为每一帧的内容是64*64 有2px的内边距
-        this.blindChip.setScale(
-            calcScale(this.cameraWidth, this.blindChip.width, 128) * (68 / 64),
+        blindChip.setScale(
+            calcScale(this.cameraWidth, blindChip.displayWidth, 128) *
+                (68 / 64),
         );
 
-        this.blindChip.play(key);
+        blindChip.play(key);
+        return blindChip;
     }
 }

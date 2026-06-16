@@ -24,7 +24,7 @@ export class Preloader extends BaseScene {
             "assets/shaders/background_phaser.glsl",
         );
         this.load.glsl("dissolve", "assets/shaders/dissolve.glsl");
-        // 加载 Joker 卡精灵图
+        // 加载精灵图
         this.load.spritesheet("Jokers", "assets/textures/2x/Jokers.png", {
             frameWidth: 142,
             frameHeight: 190,
@@ -45,6 +45,10 @@ export class Preloader extends BaseScene {
                 frameHeight: 68,
             },
         );
+        this.load.spritesheet("chips", "assets/textures/2x/chips.png", {
+            frameWidth: 58,
+            frameHeight: 58,
+        });
         this.load.image("balatro", "assets/textures/2x/balatro.png");
 
         this.load.audio("cardSlide1", "assets/sounds/cardSlide1.ogg");

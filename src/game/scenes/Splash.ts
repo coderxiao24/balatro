@@ -97,7 +97,11 @@ export class Splash extends BaseScene {
         // 创建 Joker 卡（精灵图第一帧）
         this.jokerCard = this.add.image(width / 2, height, "Jokers", 0);
 
-        this.jokerCardScale = calcScale(width, this.jokerCard.width, 220);
+        this.jokerCardScale = calcScale(
+            width,
+            this.jokerCard.displayWidth,
+            220,
+        );
 
         this.jokerCard.setScale(this.jokerCardScale);
 

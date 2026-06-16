@@ -232,7 +232,7 @@ export class Game extends BaseScene {
                 itemPlayingCard.setScale(
                     calcScale(
                         this.cameraWidth,
-                        itemPlayingCard.container.width,
+                        itemPlayingCard.container.displayWidth,
                         180,
                     ),
                 );
