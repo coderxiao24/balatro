@@ -1,5 +1,11 @@
 import { BlindCardTypes, BlindNames, StakeNames } from "@/types";
-import { calcPx, calcScale, getScore } from "@/utils";
+import {
+    calcPx,
+    calcScale,
+    darkenHexNumber,
+    getScore,
+    stringToHexNumber,
+} from "@/utils";
 import { GameObjects } from "phaser";
 import { createButton } from ".";
 import { blindCardsBtnTextMap, BlindsDataMap, stakeDataMap } from "@/config";
@@ -100,12 +106,8 @@ export default class BlindCard extends GameObjects.Container {
                     ? 0x1478b4
                     : this.blindName === BlindNames.BigBlind
                       ? 0xab7b1b
-                      : parseInt(
-                            (
-                                BlindsDataMap[this.blindName]
-                                    .boss_colour as string
-                            ).replace(/^#/, ""),
-                            16,
+                      : stringToHexNumber(
+                            BlindsDataMap[this.blindName].boss_colour as string,
                         ),
             );
 
@@ -146,21 +148,51 @@ export default class BlindCard extends GameObjects.Container {
             this.CardsType !== BlindCardTypes.Active,
         );
 
-        // @todo: 改样式
-        const blindNameText = this.currentScene.add
-            .text(
+        const blindNameBg = this.currentScene.add
+            .rectangle(
                 0,
-                -this.cardHeight / 2 +
-                    calcPx(this.cameraWidth, 184) +
-                    calcPx(this.cameraWidth, 50) / 2,
-                BlindsDataMap[this.blindName].name,
-                {
-                    fontSize: calcPx(this.cameraWidth, 34),
-                    color: "#fff",
-                    fontFamily: "NotoSansSC",
-                },
+                0,
+                calcPx(this.cameraWidth, 276),
+                calcPx(this.cameraWidth, 40),
+                darkenHexNumber(
+                    this.blindName === BlindNames.SmallBlind
+                        ? 0x1478b4
+                        : this.blindName === BlindNames.BigBlind
+                          ? 0xab7b1b
+                          : stringToHexNumber(
+                                BlindsDataMap[this.blindName]
+                                    .boss_colour as string,
+                            ),
+                    0.7,
+                ),
             )
+            .setRounded(calcPx(this.cameraWidth, 12))
+            .setStrokeStyle(
+                calcPx(this.cameraWidth, 5),
+                this.blindName === BlindNames.SmallBlind
+                    ? 0x1478b4
+                    : this.blindName === BlindNames.BigBlind
+                      ? 0xab7b1b
+                      : stringToHexNumber(
+                            BlindsDataMap[this.blindName].boss_colour as string,
+                        ),
+            );
+
+        const blindNameText = this.currentScene.add
+            .text(0, 0, BlindsDataMap[this.blindName].name, {
+                fontSize: calcPx(this.cameraWidth, 34),
+                color: "#fff",
+                fontFamily: "NotoSansSC",
+            })
             .setOrigin(0.5);
+
+        const blindNameTextGroup = this.currentScene.add.container(
+            0,
+            -this.cardHeight / 2 +
+                calcPx(this.cameraWidth, 184) +
+                calcPx(this.cameraWidth, 50) / 2,
+            [blindNameBg, blindNameText],
+        );
 
         const blindChip = this.createBlindChip();
 
@@ -172,7 +204,7 @@ export default class BlindCard extends GameObjects.Container {
             cardBg,
             blindInfoBorder,
             chooseBtn,
-            blindNameText,
+            blindNameTextGroup,
             blindChip,
             stakeChipAndScoreGroup,
         ]);

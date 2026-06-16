@@ -57,22 +57,57 @@ export const createButton = (
         Geom.Rectangle.Contains,
     );
 
+    const LONG_PRESS_THRESHOLD = 300;
+
+    let isPointerDown = false;
+    let pressStartTime = 0;
+
+    let startX = 0;
+    let startY = 0;
+
     container.on("pointerover", () => {
         container.y = y + calcPx(width, 12);
         container.setAlpha(0.5);
     });
+
     container.on("pointerout", () => {
         container.y = y;
         container.setAlpha(1);
+        // 如果滑出按钮区域，重置按下状态
+        isPointerDown = false;
     });
 
-    container.on("pointerdown", () => {
-        AudioManager.getInstance().playSound(scene.scene.key, "button", {
-            volume: 0.7,
-            rate: 0.8,
-        });
-        onClick();
+    //  按下时：记录时间和初始位置
+    container.on("pointerdown", (_pointer: Phaser.Input.Pointer) => {
+        isPointerDown = true;
+        pressStartTime = Date.now();
+        startX = _pointer.x;
+        startY = _pointer.y;
     });
+
+    //  松开时：判断是否为有效点击
+    container.on("pointerup", (_pointer: Phaser.Input.Pointer) => {
+        if (!isPointerDown) return; // 防止重复触发或滑出后再松开
+
+        const duration = Date.now() - pressStartTime;
+        const distance = Math.sqrt(
+            Math.pow(_pointer.x - startX, 2) + Math.pow(_pointer.y - startY, 2),
+        );
+
+        // 重置状态
+        isPointerDown = false;
+
+        // 只有当 按下时间小于阈值 且 手指没有发生明显位移 时，才视为有效点击
+        if (duration < LONG_PRESS_THRESHOLD && distance < 10) {
+            AudioManager.getInstance().playSound(scene.scene.key, "button", {
+                volume: 0.7,
+                rate: 0.8,
+            });
+            onClick();
+        }
+    });
+
+    // --- 核心改动结束 ---
 
     return container;
 };

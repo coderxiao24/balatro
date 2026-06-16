@@ -151,3 +151,37 @@ export function getScore(
 
     return score;
 }
+
+/**
+ * 将 16进制格式颜色值变暗 (乘以指定系数)
+ * @param {number} hexColor
+ * @param {number} [factor=0.7] 变暗系数，默认 0.7 保留70% 亮度
+ * @returns {number} 变暗后的颜色
+ */
+export function darkenHexNumber(hexColor: number, factor = 0.7) {
+    const r = (hexColor >> 16) & 0xff;
+    const g = (hexColor >> 8) & 0xff;
+    const b = hexColor & 0xff;
+    const newR = Math.max(0, Math.min(255, Math.round(r * factor)));
+    const newG = Math.max(0, Math.min(255, Math.round(g * factor)));
+    const newB = Math.max(0, Math.min(255, Math.round(b * factor)));
+    return (newR << 16) | (newG << 8) | newB;
+}
+
+/**
+ * 将任意格式的 Hex 颜色字符串转换为 16进制数字 (0xRRGGBB)
+ * @param {string} hex - 例如 '#fff', '#000000', '#1478B4'
+ * @returns {number} 返回纯数字，例如 0xFFFFFF, 0x000000, 0x1478B4
+ */
+export function stringToHexNumber(hex: string) {
+    let cleanHex = hex.replace(/^#/, "").toUpperCase();
+
+    if (cleanHex.length === 3 || cleanHex.length === 4) {
+        cleanHex = cleanHex
+            .split("")
+            .map((char) => char + char)
+            .join("");
+    }
+
+    return parseInt(cleanHex.substring(0, 6), 16);
+}

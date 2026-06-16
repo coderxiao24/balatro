@@ -9,6 +9,7 @@ import { AudioManager } from "@/game/manager/AudioManager";
 import BigNumber from "bignumber.js";
 BigNumber.config({ EXPONENTIAL_AT: 10 });
 const config: Phaser.Types.Core.GameConfig = {
+    parent: "game-container",
     type: AUTO,
     scene: [Boot, Preloader, Splash, MainMenu, MainGame, GameOver],
     scale: {
@@ -20,5 +21,5 @@ const config: Phaser.Types.Core.GameConfig = {
     },
 };
 
-const game = new Game({ ...config, parent: "game-container" });
+const game = new Game(config);
 AudioManager.getInstance().init(game.sound);

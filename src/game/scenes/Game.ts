@@ -90,7 +90,6 @@ export class Game extends BaseScene {
             stakeName: this.gameData.stake,
         });
 
-        console.log(666, Object.entries(BlindsDataMap));
         this.bossBlindCard = new BlindCard({
             scene: this,
             blindName: this.random.pick(
