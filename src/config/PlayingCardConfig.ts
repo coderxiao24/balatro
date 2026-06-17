@@ -33,6 +33,29 @@ export const PLAYING_CARD_ALL_SUITS: Readonly<Suits[]> = Object.values(Suits);
 /** 所有 PlayingCardValues 枚举值数组（用于随机） */
 export const PLAYING_CARD_ALL_VALUES: Readonly<PlayingCardValues[]> =
     Object.values(PlayingCardValues);
+/** 点数权重 */
+export const PLAYING_CARD_RANK_MAP: Record<string, number> = {
+    [PlayingCardValues.Two]: 2,
+    [PlayingCardValues.Three]: 3,
+    [PlayingCardValues.Four]: 4,
+    [PlayingCardValues.Five]: 5,
+    [PlayingCardValues.Six]: 6,
+    [PlayingCardValues.Seven]: 7,
+    [PlayingCardValues.Eight]: 8,
+    [PlayingCardValues.Nine]: 9,
+    [PlayingCardValues.Ten]: 10,
+    [PlayingCardValues.Jack]: 11,
+    [PlayingCardValues.Queen]: 12,
+    [PlayingCardValues.King]: 13,
+    [PlayingCardValues.Ace]: 14,
+};
+/** 花色权重 */
+export const SUIT_RANK_MAP: Record<string, number> = {
+    [Suits.Spades]: 4, // 黑桃
+    [Suits.Hearts]: 3, // 红心
+    [Suits.Clubs]: 2, // 梅花
+    [Suits.Diamonds]: 1, // 方片
+};
 
 /** 初始扑克牌数据对象 */
 export const INITIAL_PLAYING_CARDS_MAP: Readonly<Record<string, IPlayingCard>> =

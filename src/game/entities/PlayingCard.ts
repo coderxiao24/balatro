@@ -9,6 +9,7 @@ import {
 import {
     PLAYING_CARD_ALL_SUITS,
     PLAYING_CARD_ALL_VALUES,
+    PLAYING_CARD_RANK_MAP,
     PLAYING_CARD_SUIT_ROW,
     PLAYING_CARD_VALUE_COL,
 } from "@/config";
@@ -25,6 +26,7 @@ const SELECT_OFFSET_Y = -30;
 export class PlayingCard {
     readonly suit: Suits;
     readonly value: PlayingCardValues;
+    readonly rank: number;
     readonly frame: number;
     readonly name: string;
     /** 是否正面朝上（可读写，不会带动画，需配合 flip() 或直接更新后用 refreshFace() 同步） */
@@ -110,6 +112,7 @@ export class PlayingCard {
             PLAYING_CARD_SUIT_ROW[this.suit] * 13 +
             PLAYING_CARD_VALUE_COL[this.value];
         this.name = `${this.value} of ${this.suit}`;
+        this.rank = PLAYING_CARD_RANK_MAP[this.value];
         this.faceUp = faceUp;
     }
 

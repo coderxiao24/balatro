@@ -14,7 +14,8 @@ import { PlayingCard } from "../entities/PlayingCard";
 import { Actions, Math } from "phaser";
 import { BalatroBackground } from "@/game/entities/shaders/BalatroBackground";
 import { AudioManager } from "../manager/AudioManager";
-import { BlindsDataMap } from "@/config";
+import { BlindsDataMap, SUIT_RANK_MAP } from "@/config";
+import { createButton } from "../ui";
 
 export class Game extends BaseScene {
     bigBlindCard: BlindCard;
@@ -36,6 +37,9 @@ export class Game extends BaseScene {
     playCardsContainerWidth: number;
     playCardsContainerHeight: number;
     random: Random = new Random();
+    deckContainer: Phaser.GameObjects.Container;
+    suitButton: Phaser.GameObjects.Container;
+    pointButton: Phaser.GameObjects.Container;
     constructor() {
         super("Game");
     }
@@ -115,6 +119,64 @@ export class Game extends BaseScene {
         this.smallBlindCard.addToScene();
         this.bigBlindCard.addToScene();
         this.bossBlindCard.addToScene();
+
+        this.currentDeck = this.random.shuffle(this.gameData.completeDeck);
+        this.createOrUpdateDeckContainer();
+    }
+    createOrUpdateDeckContainer() {
+        // 1. 计算牌堆比例并确定当前需要展示的牌数
+        const totalCards = this.gameData.completeDeck?.length || 0;
+        const currentCards = this.currentDeck?.length || 0;
+
+        // 如果总牌数为0，防止除以0报错，默认展示0张
+        const ratio = totalCards > 0 ? currentCards / totalCards : 0;
+        const cardCount = window.Math.max(
+            0,
+            window.Math.min(6, window.Math.ceil(ratio * 6)),
+        );
+        // 2. 容器的基准坐标（居中点）
+        const containerX =
+            calcPx(this.cameraWidth, 2105) + calcPx(this.cameraWidth, 182) / 2;
+        const containerY =
+            calcPx(this.cameraWidth, 880) + calcPx(this.cameraWidth, 248) / 2;
+
+        // 3. 如果容器已存在，先清空旧内容（防止重复创建导致内存泄漏）
+        if (this.deckContainer) {
+            this.deckContainer.removeAll(true); // true 表示销毁子对象
+            this.deckContainer.setPosition(containerX, containerY);
+        } else {
+            this.deckContainer = this.add.container(containerX, containerY);
+        }
+
+        // 4. 如果当前不需要展示牌，直接返回
+        if (cardCount === 0) return;
+
+        // 5. 动态生成对应数量的牌
+        const children = new Array(cardCount)
+            .fill(null)
+            .map((_, idx) => {
+                const deckCard = new PlayingCard(undefined, undefined, false);
+                deckCard.addToScene({
+                    scene: this,
+                    x: calcPx(this.cameraWidth, idx * 4),
+                    y: calcPx(this.cameraWidth, -idx * 4),
+                });
+
+                if (deckCard.container) {
+                    deckCard.setScale(
+                        calcScale(
+                            this.cameraWidth,
+                            deckCard.container.displayWidth,
+                            182,
+                        ),
+                    );
+                }
+                return deckCard.container!;
+            })
+            .filter(Boolean); // 过滤掉可能的 null 值
+
+        // 6. 将生成的牌添加到容器中
+        this.deckContainer.add(children);
     }
 
     hideBlindCards() {
@@ -153,8 +215,34 @@ export class Game extends BaseScene {
         this.handPlayCardsContainer = this.add.container(
             calcPx(this.cameraWidth, 887) + calcPx(this.cameraWidth, 1087) / 2,
             this.cameraHeight + calcPx(this.cameraWidth, 253) / 2,
-
             [Bg],
+        );
+
+        this.pointButton = createButton(
+            this,
+            calcPx(this.cameraWidth, 1350) + calcPx(this.cameraWidth, 126) / 2,
+            calcPx(this.cameraWidth, 1024) + calcPx(this.cameraWidth, 78) / 2,
+            calcPx(this.cameraWidth, 126),
+            calcPx(this.cameraWidth, 78),
+            0xfca210,
+            "点数",
+            calcPx(this.cameraWidth, 24),
+            () => {
+                this.organizeHandPlayingCards("point");
+            },
+        );
+        this.suitButton = createButton(
+            this,
+            calcPx(this.cameraWidth, 1486) + calcPx(this.cameraWidth, 126) / 2,
+            calcPx(this.cameraWidth, 1024) + calcPx(this.cameraWidth, 78) / 2,
+            calcPx(this.cameraWidth, 126),
+            calcPx(this.cameraWidth, 78),
+            0xfca210,
+            "花色",
+            calcPx(this.cameraWidth, 24),
+            () => {
+                this.organizeHandPlayingCards("suit");
+            },
         );
 
         this.tweens.add({
@@ -172,6 +260,54 @@ export class Game extends BaseScene {
         });
     }
 
+    organizeHandPlayingCards(type: "point" | "suit") {
+        if (type === "point") {
+            this.handPlayingCards.sort((a, b) => b.rank - a.rank);
+            this.handPlayingCards.forEach((card, idx) => {
+                if (!card.container) return;
+                this.tweens.add({
+                    targets: card.container,
+                    x: this.getHandPlayingCardXByIndex(card, idx),
+                    duration: 200,
+                    ease: "Back.easeOut",
+                    onComplete: () => {
+                        if (!card.container) return;
+                        this.handPlayCardsContainer.moveTo(
+                            card.container,
+                            idx + 1,
+                        );
+                    },
+                });
+            });
+        } else {
+            this.handPlayingCards.sort((a, b) => {
+                // 先比花色权重
+                const suitDiff =
+                    (SUIT_RANK_MAP[b.suit] || 0) - (SUIT_RANK_MAP[a.suit] || 0);
+                if (suitDiff !== 0) return suitDiff;
+
+                //  花色相同，再比点数
+                return b.rank - a.rank;
+            });
+            this.handPlayingCards.forEach((card, idx) => {
+                if (!card.container) return;
+                this.tweens.add({
+                    targets: card.container,
+                    x: this.getHandPlayingCardXByIndex(card, idx),
+                    duration: 200,
+                    ease: "Back.easeOut",
+                    onComplete: () => {
+                        if (!card.container) return;
+                        this.handPlayCardsContainer.moveTo(
+                            card.container,
+                            idx + 1,
+                        );
+                    },
+                });
+            });
+        }
+    }
+
     /**
      * 抽手牌卡牌
      * @param num 抽取的牌数
@@ -184,13 +320,14 @@ export class Game extends BaseScene {
             drawnCards = this.currentDeck.splice(0, num);
         } else {
             drawnCards = cloneDeep(this.currentDeck);
-            this.currentDeck = [];
             this.currentDeck = this.random.shuffle(this.gameData.completeDeck);
             drawnCards = drawnCards.concat(
                 this.currentDeck.splice(0, num - drawnCards.length),
             );
         }
+
         await this.createHandPlayingCards(drawnCards);
+        this.createOrUpdateDeckContainer();
     }
 
     getHandPlayingCardXByIndex(card: PlayingCard, idx: number) {
@@ -264,20 +401,32 @@ export class Game extends BaseScene {
      * @param playingCards 手牌卡牌数组
      */
     async createHandPlayingCards(playingCards: IPlayingCard[]) {
-        this.handPlayingCards = this.handPlayingCards.concat(
-            playingCards.map((item, idx) => {
+        const newHandPlayingCards = await Promise.all(
+            playingCards.map(async (item, idx) => {
                 const itemPlayingCard = new PlayingCard(
                     item.suit,
                     item.value,
                     false,
                 );
 
+                // 获取牌堆最后一个 Image 的世界坐标
+                const targetImage = (
+                    this.deckContainer.getAt(
+                        this.deckContainer.length - 1,
+                    ) as Phaser.GameObjects.Container
+                ).getAll()[0] as Phaser.GameObjects.Image;
+                const worldMatrixA = targetImage.getWorldTransformMatrix();
+
+                // 计算相对于 handPlayCardsContainer 的坐标
+                const localPoint = this.handPlayCardsContainer.getLocalPoint(
+                    worldMatrixA.tx,
+                    worldMatrixA.ty,
+                );
+
                 itemPlayingCard.addToScene({
                     scene: this,
-                    x:
-                        this.playCardsContainerWidth / 2 +
-                        calcPx(this.cameraWidth, 140),
-                    y: this.playCardsContainerHeight / 2,
+                    x: localPoint.x,
+                    y: localPoint.y,
                     clickMode: PlayingCardClickModes.select,
                     enableDrag: true,
                 });
@@ -289,8 +438,6 @@ export class Game extends BaseScene {
                             180,
                         ),
                     );
-                    // itemPlayingCard.container.x =
-                    //     this.getHandPlayingCardXByIndex(itemPlayingCard, idx);
                 }
                 itemPlayingCard.setDragCallbacks({
                     onDragStart: (card) => {
@@ -407,37 +554,41 @@ export class Game extends BaseScene {
                 if (itemPlayingCard.container) {
                     const percent = ((idx + 1) / playingCards.length) * 100;
 
-                    console.log(666, percent, 0.85 + (percent * 0.2) / 100);
                     this.handPlayCardsContainer.add(itemPlayingCard.container!);
-
-                    this.tweens.add({
-                        targets: itemPlayingCard.container,
-                        y: 0,
-                        x: this.getHandPlayingCardXByIndex(
-                            itemPlayingCard,
-                            idx,
-                        ),
-                        duration: 100,
-                        delay: idx * 100,
-                        ease: "Back.easeOut",
-                        onComplete: () => {},
-                        onStart: () => {
-                            AudioManager.getInstance().playSound(
-                                this.scene.key,
-                                "card1",
-                                {
-                                    volume: 0.6,
-                                    rate: 0.85 + (percent * 0.2) / 100,
-                                },
-                            );
-                            itemPlayingCard.flip();
-                        },
+                    await new Promise<void>((resolve, reject) => {
+                        this.tweens.add({
+                            targets: itemPlayingCard.container,
+                            y: 0,
+                            x: this.getHandPlayingCardXByIndex(
+                                itemPlayingCard,
+                                idx,
+                            ),
+                            duration: 100,
+                            delay: idx * 100,
+                            ease: "Back.easeOut",
+                            onComplete: () => {
+                                resolve();
+                            },
+                            onStart: () => {
+                                AudioManager.getInstance().playSound(
+                                    this.scene.key,
+                                    "card1",
+                                    {
+                                        volume: 0.6,
+                                        rate: 0.85 + (percent * 0.2) / 100,
+                                    },
+                                );
+                                itemPlayingCard.flip();
+                            },
+                        });
                     });
                 }
 
                 return itemPlayingCard;
             }),
         );
+        this.handPlayingCards =
+            this.handPlayingCards.concat(newHandPlayingCards);
     }
 
     update(_time: number, delta: number): void {
