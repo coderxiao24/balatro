@@ -280,7 +280,7 @@ export default class BlindCard extends GameObjects.Container {
         group.x = 0 - bounds.width / 2;
 
         const rewardText = this.currentScene.add
-            .text(0, 0, "奖励 : ", {
+            .text(0, 0, "奖励:", {
                 fontSize: calcPx(this.cameraWidth, 28),
                 color: "#FFF",
                 fontFamily: "NotoSansSC",
@@ -288,11 +288,16 @@ export default class BlindCard extends GameObjects.Container {
             .setOrigin(0, 0.5);
 
         const rewardAmountText = this.currentScene.add
-            .text(rewardText.displayWidth, 0, "$$$+", {
-                fontSize: calcPx(this.cameraWidth, 28),
-                color: "#F3B959",
-                fontFamily: "NotoSansSC",
-            })
+            .text(
+                rewardText.displayWidth,
+                0,
+                `${"$".repeat(BlindsDataMap[this.blindName].dollars)}+`,
+                {
+                    fontSize: calcPx(this.cameraWidth, 28),
+                    color: "#F3B959",
+                    fontFamily: "NotoSansSC",
+                },
+            )
             .setOrigin(0, 0.5);
 
         const rewardGroup = this.currentScene.add.container(

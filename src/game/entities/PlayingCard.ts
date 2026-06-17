@@ -171,7 +171,7 @@ export class PlayingCard {
     flip(): void {
         if (!this.scene || !this.container || !this.base || !this.overlay)
             return;
-        if (this.scene.tweens.isTweening(this.container)) return;
+        // if (this.scene.tweens.isTweening(this.container)) return;
 
         const showFront = !this.faceUp;
 
