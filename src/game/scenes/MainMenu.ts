@@ -52,20 +52,26 @@ export class MainMenu extends BaseScene {
         );
         this.add.existing(this.bgShader);
 
-        this.logo = this.add.image(width / 2, calcPx(width, 460), "balatro");
+        this.logo = this.add.image(width / 2, 0, "balatro");
 
-        this.logo.setScale(calcScale(width, this.logo.displayHeight, 863));
+        this.logo.setScale(
+            calcScale(width, this.logo.displayHeight, 864) * (864 / 848),
+        );
+        this.logo.y = calcPx(width, 32) + this.logo.displayHeight / 2;
         const A = new PlayingCard(Suits.Spades, PlayingCardValues.Ace);
         A.addToScene({
             scene: this,
             x: width / 2,
-            y: calcPx(width, 460),
+            y: 0,
             clickMode: PlayingCardClickModes.none,
             enableDrag: true,
         });
 
         if (A.container) {
-            A.setScale(calcScale(width, A.container.displayWidth, 240));
+            A.setScale(
+                calcScale(width, A.container.displayWidth, 240) * (240 / 236),
+            );
+            A.container.y = calcPx(width, 300) + A.container.displayHeight / 2;
         }
 
         // 设置拖拽回调，包括放置验证

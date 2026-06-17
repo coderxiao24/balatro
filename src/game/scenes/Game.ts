@@ -50,7 +50,7 @@ export class Game extends BaseScene {
         this.cameraWidth = this.cameras.main.width;
         this.cameraHeight = this.cameras.main.height;
 
-        this.playCardsContainerWidth = calcPx(this.cameraWidth, 1087);
+        this.playCardsContainerWidth = calcPx(this.cameraWidth, 1187);
         this.playCardsContainerHeight = calcPx(this.cameraWidth, 253);
 
         this.gameData = await preferences.getItem("gameData");
@@ -158,8 +158,8 @@ export class Game extends BaseScene {
                 const deckCard = new PlayingCard(undefined, undefined, false);
                 deckCard.addToScene({
                     scene: this,
-                    x: calcPx(this.cameraWidth, idx * 4),
-                    y: calcPx(this.cameraWidth, -idx * 4),
+                    x: calcPx(this.cameraWidth, idx * 3),
+                    y: calcPx(this.cameraWidth, -idx * 5),
                 });
 
                 if (deckCard.container) {
@@ -168,7 +168,8 @@ export class Game extends BaseScene {
                             this.cameraWidth,
                             deckCard.container.displayWidth,
                             182,
-                        ),
+                        ) *
+                            (182 / 178),
                     );
                 }
                 return deckCard.container!;
@@ -207,14 +208,14 @@ export class Game extends BaseScene {
                 0,
                 this.playCardsContainerWidth,
                 this.playCardsContainerHeight,
-                0xffffff,
-                0.5,
+                0x000000,
+                0.1,
             )
             .setRounded(calcPx(this.cameraWidth, 12));
 
         this.handPlayCardsContainer = this.add.container(
-            calcPx(this.cameraWidth, 887) + calcPx(this.cameraWidth, 1087) / 2,
-            this.cameraHeight + calcPx(this.cameraWidth, 253) / 2,
+            calcPx(this.cameraWidth, 887) + this.playCardsContainerWidth / 2,
+            this.cameraHeight + this.playCardsContainerHeight / 2,
             [Bg],
         );
 
@@ -328,19 +329,21 @@ export class Game extends BaseScene {
 
         await this.createHandPlayingCards(drawnCards);
         this.createOrUpdateDeckContainer();
+        // 默认按点数排序
+        this.organizeHandPlayingCards("point");
     }
 
     getHandPlayingCardXByIndex(card: PlayingCard, idx: number) {
         if (!card.container) {
             throw new Error("card.container is null");
         }
-        const playingCardWidth = card.dragging
-            ? card.container.displayWidth / card.pickupMagnification
-            : card.container.displayWidth;
+        // 正常卡牌宽度
+        const normalPlayingCardWidth = card.container.width * card.scale;
+
         return (
             -this.playCardsContainerWidth / 2 +
-            playingCardWidth / 2 +
-            (idx * (this.playCardsContainerWidth - playingCardWidth)) /
+            normalPlayingCardWidth / 2 +
+            (idx * (this.playCardsContainerWidth - normalPlayingCardWidth)) /
                 (this.gameData.handLimit - 1)
         );
     }
@@ -354,24 +357,22 @@ export class Game extends BaseScene {
         const currentCardWidth = card.container.displayWidth;
 
         // 其他卡牌宽度
-        const othersCardWidth = card.dragging
-            ? card.container.displayWidth / card.pickupMagnification
-            : currentCardWidth;
+        const normalPlayingCardWidth = card.container.width * card.scale;
 
         // 当前拿起的扑克牌的最左侧
         const leftX = x - currentCardWidth / 2;
 
         // 原始位置的最左侧
-        const originalLeftX = card.originalX - othersCardWidth / 2;
+        const originalLeftX = card.originalX - normalPlayingCardWidth / 2;
 
         // 当前拿起的卡牌相对于最右侧卡牌的偏移量像素 0代表恰好和最右侧卡牌 左侧对齐
         const cardOffsetX =
-            leftX - (this.playCardsContainerWidth / 2 - othersCardWidth);
+            leftX - (this.playCardsContainerWidth / 2 - normalPlayingCardWidth);
 
         // 当前拿起的卡牌相对于最右侧卡牌的偏移卡牌数量 -1代表相对于最右侧卡牌恰好向左偏移一张
         const cardOffsetNum =
             cardOffsetX /
-            ((this.playCardsContainerWidth - othersCardWidth) /
+            ((this.playCardsContainerWidth - normalPlayingCardWidth) /
                 (this.gameData.handLimit - 1));
 
         let index: number;
@@ -436,7 +437,8 @@ export class Game extends BaseScene {
                             this.cameraWidth,
                             itemPlayingCard.container.displayWidth,
                             180,
-                        ),
+                        ) *
+                            (180 / 176),
                     );
                 }
                 itemPlayingCard.setDragCallbacks({
