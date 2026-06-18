@@ -144,17 +144,7 @@ export class PlayingCard {
         // 始终设置容器尺寸，确保外部可以正确获取宽高
         this.container.setSize(this.base.displayWidth, this.base.displayHeight);
 
-        if (clickMode !== PlayingCardClickModes.none || enableDrag) {
-            this.container.setInteractive({
-                useHandCursor: true,
-            });
-
-            // 注册按下事件（在容器上）
-            this.container.on("pointerdown", (pointer: Phaser.Input.Pointer) =>
-                this.handlePointerDown(pointer),
-            );
-            // pointermove 和 pointerup 在拖拽开始时注册到场景级别
-        }
+        this.refreshInteraction();
 
         return this.container;
     }
@@ -174,6 +164,8 @@ export class PlayingCard {
     flip(): void {
         if (!this.scene || !this.container || !this.base || !this.overlay)
             return;
+        if (this.dragging) return;
+
         // if (this.scene.tweens.isTweening(this.container)) return;
 
         const showFront = !this.faceUp;
@@ -207,6 +199,7 @@ export class PlayingCard {
     toggleSelect(): void {
         if (!this.scene || !this.container) return;
         if (this.scene.tweens.isTweening(this.container)) return;
+        if (this.dragging) return;
 
         AudioManager.getInstance().playSound(
             this.scene.scene.key,
@@ -224,7 +217,7 @@ export class PlayingCard {
             y:
                 this.container.y +
                 (this.selected ? SELECT_OFFSET_Y : -SELECT_OFFSET_Y),
-            duration: 150,
+            duration: 1500,
             ease: "Back.easeOut",
         });
     }
@@ -275,6 +268,9 @@ export class PlayingCard {
     /** 处理指针按下 */
     private handlePointerDown(pointer: Phaser.Input.Pointer): void {
         if (!this.container || !this.scene) return;
+        // 如果正在播放选中动画（可能是选中事件或翻转触发中），不处理本次点击或拖拽
+        if (this.scene.tweens.isTweening(this.container)) return;
+        if (this.dragging) return;
         // 取消之前的计时器
         if (this.longPressTimer) {
             this.longPressTimer.destroy();
@@ -357,7 +353,9 @@ export class PlayingCard {
     }
 
     /** 处理指针释放 */
-    private handlePointerUp(pointer: Phaser.Input.Pointer): void {
+    private async handlePointerUp(
+        pointer: Phaser.Input.Pointer,
+    ): Promise<void> {
         if (!this.container || !this.scene) return;
 
         // 取消长按计时器
@@ -385,8 +383,6 @@ export class PlayingCard {
                 );
             }
 
-            this.isLongPressTriggered = false;
-
             if (dropResult === true) {
                 // 可以放置，留在当前位置
                 this.onDragEndCallback?.(
@@ -396,15 +392,16 @@ export class PlayingCard {
                     this.targetX,
                     this.targetY,
                 );
-                this.addDropShake();
+                await this.addDropShake();
                 this.container.setDepth(0);
             } else if (dropResult && typeof dropResult === "object") {
                 // 返回了吸附位置，吸附到指定位置
-                this.snapToPosition(dropResult.x, dropResult.y);
+                await this.snapToPosition(dropResult.x, dropResult.y);
             } else {
                 // 不可放置（false 或 null），回弹到原始位置
-                this.snapBackToOriginal();
+                await this.snapBackToOriginal();
             }
+            this.isLongPressTriggered = false;
         } else {
             // 未触发拖拽，视为点击（仅在启用click模式时）
             if (this.clickMode !== PlayingCardClickModes.none) {
@@ -413,67 +410,110 @@ export class PlayingCard {
         }
     }
 
+    setClickMode(mode: PlayingCardClickModes): void {
+        this.clickMode = mode;
+        this.refreshInteraction();
+    }
+    setEnableDrag(enable: boolean): void {
+        this.enableDrag = enable;
+        this.refreshInteraction();
+    }
+
+    private refreshInteraction() {
+        if (!this.container) return;
+
+        this.container.off("pointerdown");
+
+        const shouldInteract =
+            this.clickMode !== PlayingCardClickModes.none || this.enableDrag;
+
+        if (shouldInteract) {
+            this.container.setInteractive({
+                useHandCursor: true,
+            });
+
+            this.container.on("pointerdown", (pointer: Phaser.Input.Pointer) =>
+                this.handlePointerDown(pointer),
+            );
+        } else {
+            this.container.disableInteractive();
+        }
+    }
+
     /** 回弹到原始位置 */
-    private snapBackToOriginal(): void {
+    private async snapBackToOriginal(): Promise<void> {
         if (!this.container || !this.scene) return;
 
         // 生成随机抖动序列
         const shakeRotation = this.generateRandomShake(5, 4);
 
-        // 使用动画回弹到原始位置，同时抖动和缩放
-        this.scene.tweens.add({
-            targets: this.container,
-            x: this.originalX,
-            y: this.originalY,
-            scale: this.scale,
-            rotation: shakeRotation,
-            duration: 200,
-            ease: "Back.easeOut",
-            onComplete: () => {
-                if (!this.container) return;
-                // 恢复深度
-                this.container?.setDepth(0);
-                // 触发拖拽结束回调（回到原始位置）
-                this.onDragEndCallback?.(
-                    this,
-                    this.container.x,
-                    this.container.y,
-                    this.originalX,
-                    this.originalY,
-                );
-            },
+        await new Promise<void>((resolve, reject) => {
+            if (!this.scene) {
+                reject("场景不存在");
+                return;
+            }
+            // 使用动画回弹到原始位置，同时抖动和缩放
+            this.scene.tweens.add({
+                targets: this.container,
+                x: this.originalX,
+                y: this.originalY,
+                scale: this.scale,
+                rotation: shakeRotation,
+                duration: 200,
+                ease: "Back.easeOut",
+                onComplete: () => {
+                    if (!this.container) return;
+                    // 恢复深度
+                    this.container?.setDepth(0);
+                    // 触发拖拽结束回调（回到原始位置）
+                    this.onDragEndCallback?.(
+                        this,
+                        this.container.x,
+                        this.container.y,
+                        this.originalX,
+                        this.originalY,
+                    );
+                    resolve();
+                },
+            });
         });
     }
 
     /** 吸附到指定位置 */
-    private snapToPosition(x: number, y: number): void {
+    private async snapToPosition(x: number, y: number): Promise<void> {
         if (!this.container || !this.scene) return;
 
         // 生成随机抖动序列
         const shakeRotation = this.generateRandomShake(5, 4);
 
-        // 使用动画吸附到指定位置，同时抖动和缩放
-        this.scene.tweens.add({
-            targets: this.container,
-            x: x,
-            y: y,
-            scale: this.scale,
-            rotation: shakeRotation,
-            duration: 150,
-            ease: "Back.easeOut",
-            onComplete: () => {
-                if (!this.container) return;
-                // 恢复深度
-                this.container?.setDepth(0);
-                // 触发拖拽结束回调（吸附到指定位置）
-                this.onDragEndCallback?.(
-                    this,
-                    this.container.x,
-                    this.container.y,
-                    x,
-                    y,
-                );
-            },
+        await new Promise<void>((resolve, reject) => {
+            if (!this.scene) {
+                reject("场景不存在");
+                return;
+            }
+            this.scene.tweens.add({
+                targets: this.container,
+                x: x,
+                y: y,
+                scale: this.scale,
+                rotation: shakeRotation,
+                duration: 1500,
+                ease: "Back.easeOut",
+                onComplete: () => {
+                    if (!this.container) return;
+                    // 恢复深度
+                    this.container?.setDepth(0);
+                    // 触发拖拽结束回调（吸附到指定位置）
+                    this.onDragEndCallback?.(
+                        this,
+                        this.container.x,
+                        this.container.y,
+                        x,
+                        y,
+                    );
+                    resolve();
+                },
+            });
         });
     }
 
@@ -576,18 +616,27 @@ export class PlayingCard {
     }
 
     /** 添加放下卡片时的抖动效果 */
-    private addDropShake(): void {
+    private async addDropShake(): Promise<void> {
         if (!this.container || !this.scene) return;
 
         // 生成随机抖动序列，放下时抖动幅度略小
         const shakeRotation = this.generateRandomShake(5, 4);
+        await new Promise<void>((resolve, reject) => {
+            if (!this.scene) {
+                reject("场景不存在");
+                return;
+            }
 
-        this.scene.tweens.add({
-            targets: this.container,
-            scale: this.scale,
-            rotation: shakeRotation,
-            duration: 120 + Math.random() * 60, // 随机持续时间 120-180ms
-            ease: "Back.easeOut",
+            this.scene.tweens.add({
+                targets: this.container,
+                scale: this.scale,
+                rotation: shakeRotation,
+                duration: 120 + Math.random() * 60, // 随机持续时间 120-180ms
+                ease: "Back.easeOut",
+                onComplete: () => {
+                    resolve();
+                },
+            });
         });
     }
 }
