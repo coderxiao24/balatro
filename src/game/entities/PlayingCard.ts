@@ -217,7 +217,7 @@ export class PlayingCard {
             y:
                 this.container.y +
                 (this.selected ? SELECT_OFFSET_Y : -SELECT_OFFSET_Y),
-            duration: 1500,
+            duration: 150,
             ease: "Back.easeOut",
         });
     }
@@ -459,7 +459,7 @@ export class PlayingCard {
                 y: this.originalY,
                 scale: this.scale,
                 rotation: shakeRotation,
-                duration: 200,
+                duration: 150,
                 ease: "Back.easeOut",
                 onComplete: () => {
                     if (!this.container) return;
@@ -497,7 +497,7 @@ export class PlayingCard {
                 y: y,
                 scale: this.scale,
                 rotation: shakeRotation,
-                duration: 1500,
+                duration: 150,
                 ease: "Back.easeOut",
                 onComplete: () => {
                     if (!this.container) return;
