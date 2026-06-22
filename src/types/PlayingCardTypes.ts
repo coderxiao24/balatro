@@ -109,3 +109,16 @@ export interface DragCallbacksOptions {
         targetY: number,
     ) => void;
 }
+
+/**
+ * 选择回调配置选项
+ * card 代表当前拖拽选择的卡牌实例
+ */
+export interface SelectCallbacksOptions {
+    /** 选择开始回调  value 代表 选择事件完成后卡牌是否选中的状态 */
+    onSelectStart?: (card: PlayingCard, value: boolean) => void;
+    /** 选择验证回调  value 代表 选择事件完成后卡牌是否选中的状态 */
+    canSelect?: (card: PlayingCard, value: boolean) => boolean;
+    /** 选择结束回调 value 代表 选择事件完成后卡牌是否选中的状态 */
+    onSelectEnd?: (card: PlayingCard, value: boolean) => void;
+}

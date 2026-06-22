@@ -1,4 +1,9 @@
-import { calcPx, calcScale, preferences } from "@/utils";
+import {
+    calcPx,
+    calcScale,
+    getHandTypeByPlayingCards,
+    preferences,
+} from "@/utils";
 import { BaseScene } from "./BaseScene";
 import BlindCard from "../ui/BlindCard";
 import {
@@ -33,6 +38,7 @@ export class Game extends BaseScene {
      * 手牌的卡牌实体数组
      */
     handPlayingCards: PlayingCard[] = [];
+
     private bgShader: BalatroBackground;
     playCardsContainerWidth: number;
     playCardsContainerHeight: number;
@@ -138,16 +144,15 @@ export class Game extends BaseScene {
             .setOrigin(1, 1);
     }
     createOrUpdateDeckContainer() {
-        // 1. 计算牌堆比例并确定当前需要展示的牌数
-        const totalCards = this.gameData.completeDeck?.length || 0;
+        // 当前牌堆的牌的数量
         const currentCards = this.currentDeck?.length || 0;
 
-        // 如果总牌数为0，防止除以0报错，默认展示0张
-        const ratio = totalCards > 0 ? currentCards / totalCards : 0;
+        // 牌堆ui要展示的牌的数量
         const cardCount = window.Math.max(
             0,
-            window.Math.min(6, window.Math.ceil(ratio * 6)),
+            window.Math.ceil(currentCards / 10),
         );
+
         // 2. 容器的基准坐标（居中点）
         const containerX =
             calcPx(this.cameraWidth, 2105) + calcPx(this.cameraWidth, 182) / 2;
@@ -345,7 +350,24 @@ export class Game extends BaseScene {
             0x0b9dfb,
             "出牌",
             calcPx(this.cameraWidth, 34),
-            () => {},
+            () => {
+                console.log(
+                    666,
+                    getHandTypeByPlayingCards(
+                        this.handPlayingCards.filter((item) => item.isSelected),
+                    ),
+                );
+
+                // todo 出牌动画
+                // const card1 = this.handPlayingCards.find(
+                //     (item) => item.isSelected,
+                // )?.container as Phaser.GameObjects.Container;
+
+                // const { tx, ty } = card1.getWorldTransformMatrix();
+                // this.handPlayCardsContainer.remove(card1);
+                // card1.x = tx;
+                // card1.y = ty;
+            },
         );
 
         // 弃牌按钮
@@ -451,6 +473,18 @@ export class Game extends BaseScene {
         this.handPlayingCards.forEach((itemPlayingCard) => {
             itemPlayingCard.setClickMode(PlayingCardClickModes.select);
             itemPlayingCard.setEnableDrag(true);
+            itemPlayingCard.setSelectCallbacks({
+                canSelect: (_, value) => {
+                    // 取消选择时，直接返回true
+                    if (!value) return true;
+
+                    // 选择时，判断当前是否选择了5张牌
+                    return (
+                        this.handPlayingCards.filter((item) => item.isSelected)
+                            .length < 5
+                    );
+                },
+            });
             itemPlayingCard.setDragCallbacks({
                 onDragStart: (card) => {
                     if (!card.container) {
@@ -647,48 +681,48 @@ export class Game extends BaseScene {
             x: localPoint.x,
             y: localPoint.y,
         });
-        if (itemPlayingCard.container) {
-            itemPlayingCard.setScale(
-                calcScale(
-                    this.cameraWidth,
-                    itemPlayingCard.container.displayWidth,
-                    180,
-                ) *
-                    (180 / 176),
-            );
+        if (!itemPlayingCard.container) {
+            throw new Error("itemPlayingCard.container is null");
         }
-        if (itemPlayingCard.container) {
-            const percent =
-                (this.handPlayingCards.length / this.gameData.handLimit) * 100;
 
-            this.handPlayCardsContainer.add(itemPlayingCard.container!);
-            await new Promise<void>((resolve) => {
-                this.tweens.add({
-                    targets: itemPlayingCard.container,
-                    y: 0,
-                    x: this.getHandPlayingCardXByIndex(
-                        itemPlayingCard,
-                        this.handPlayingCards.length,
-                    ),
-                    duration: 100,
-                    ease: "Back.easeOut",
-                    onComplete: () => {
-                        resolve();
-                    },
-                    onStart: () => {
-                        AudioManager.getInstance().playSound(
-                            this.scene.key,
-                            "card1",
-                            {
-                                volume: 0.6,
-                                rate: 0.85 + (percent * 0.2) / 100,
-                            },
-                        );
-                        itemPlayingCard.flip();
-                    },
-                });
+        itemPlayingCard.setScale(
+            calcScale(
+                this.cameraWidth,
+                itemPlayingCard.container.displayWidth,
+                180,
+            ) *
+                (180 / 176),
+        );
+        const percent =
+            (this.handPlayingCards.length / this.gameData.handLimit) * 100;
+
+        this.handPlayCardsContainer.add(itemPlayingCard.container!);
+        await new Promise<void>((resolve) => {
+            this.tweens.add({
+                targets: itemPlayingCard.container,
+                y: 0,
+                x: this.getHandPlayingCardXByIndex(
+                    itemPlayingCard,
+                    this.handPlayingCards.length,
+                ),
+                duration: 100,
+                ease: "Back.easeOut",
+                onComplete: () => {
+                    resolve();
+                },
+                onStart: () => {
+                    AudioManager.getInstance().playSound(
+                        this.scene.key,
+                        "card1",
+                        {
+                            volume: 0.6,
+                            rate: 0.85 + (percent * 0.2) / 100,
+                        },
+                    );
+                    itemPlayingCard.flip();
+                },
             });
-        }
+        });
 
         return itemPlayingCard;
     }

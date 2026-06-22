@@ -5,6 +5,7 @@ import {
     PlayingCardClickModes,
     AddToSceneOptions,
     DragCallbacksOptions,
+    SelectCallbacksOptions,
 } from "@/types";
 import {
     PLAYING_CARD_ALL_SUITS,
@@ -96,6 +97,9 @@ export class PlayingCard {
           ) => void | null)
         | null
         | undefined = null;
+    onSelectStart: ((card: PlayingCard, value: boolean) => void) | null;
+    canSelect: ((card: PlayingCard, value: boolean) => boolean) | null;
+    onSelectEnd: ((card: PlayingCard, value: boolean) => void) | null;
 
     constructor(suit?: Suits, value?: PlayingCardValues, faceUp = true) {
         this.suit =
@@ -201,24 +205,30 @@ export class PlayingCard {
         if (this.scene.tweens.isTweening(this.container)) return;
         if (this.dragging) return;
 
+        const targetValue = !this.selected;
+
+        if (!this.canSelect?.(this, targetValue)) return;
+
+        this.onSelectStart?.(this, targetValue);
         AudioManager.getInstance().playSound(
             this.scene.scene.key,
-            this.selected ? "cardSlide2" : "cardSlide1",
-            this.selected
-                ? {
-                      volume: 0.3,
-                  }
-                : undefined,
+            targetValue ? "cardSlide1" : "cardSlide2",
+            {
+                volume: targetValue ? 1 : 0.3,
+            },
         );
-        this.selected = !this.selected;
 
         this.scene.tweens.add({
             targets: this.container,
             y:
                 this.container.y +
-                (this.selected ? SELECT_OFFSET_Y : -SELECT_OFFSET_Y),
+                (targetValue ? SELECT_OFFSET_Y : -SELECT_OFFSET_Y),
             duration: 150,
             ease: "Back.easeOut",
+            onComplete: () => {
+                this.selected = targetValue;
+                this.onSelectEnd?.(this, targetValue);
+            },
         });
     }
 
@@ -253,6 +263,12 @@ export class PlayingCard {
         this.onDragMoveCallback = options.onDragMove ?? null;
         this.canDropCallback = options.canDrop ?? null;
         this.onDragEndCallback = options.onDragEnd ?? null;
+    }
+
+    setSelectCallbacks(options: SelectCallbacksOptions): void {
+        this.onSelectStart = options.onSelectStart ?? null;
+        this.canSelect = options.canSelect ?? null;
+        this.onSelectEnd = options.onSelectEnd ?? null;
     }
 
     /** 获取当前是否正在拖拽 */

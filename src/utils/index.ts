@@ -1,5 +1,12 @@
 import { BlindsDataMap, stakeDataMap } from "@/config";
-import { BlindNames, StakeNames } from "@/types";
+import { PlayingCard } from "@/game/entities/PlayingCard";
+import {
+    BlindNames,
+    HandTypes,
+    PlayingCardValues,
+    StakeNames,
+    Suits,
+} from "@/types";
 import { Preferences } from "@capacitor/preferences";
 import BigNumber from "bignumber.js";
 
@@ -184,4 +191,141 @@ export function stringToHexNumber(hex: string) {
     }
 
     return parseInt(cleanHex.substring(0, 6), 16);
+}
+/**
+ * 根据扑克牌数组判断牌型
+ * @param playingCards 手牌数组
+ * @returns 牌型
+ */
+export function getHandTypeByPlayingCards(playingCards: PlayingCard[]) {
+    const playingCardValuesMap: Record<PlayingCardValues, number> = {
+        [PlayingCardValues.Two]: 0,
+        [PlayingCardValues.Three]: 0,
+        [PlayingCardValues.Four]: 0,
+        [PlayingCardValues.Five]: 0,
+        [PlayingCardValues.Six]: 0,
+        [PlayingCardValues.Seven]: 0,
+        [PlayingCardValues.Eight]: 0,
+        [PlayingCardValues.Nine]: 0,
+        [PlayingCardValues.Ten]: 0,
+        [PlayingCardValues.Jack]: 0,
+        [PlayingCardValues.Queen]: 0,
+        [PlayingCardValues.King]: 0,
+        [PlayingCardValues.Ace]: 0,
+    };
+
+    const playingCardSuitsMap: Record<Suits, number> = {
+        [Suits.Hearts]: 0,
+        [Suits.Diamonds]: 0,
+        [Suits.Clubs]: 0,
+        [Suits.Spades]: 0,
+    };
+
+    playingCards.forEach((card) => {
+        playingCardValuesMap[card.value]++;
+        playingCardSuitsMap[card.suit]++;
+    });
+
+    const valueCounts = Object.values(playingCardValuesMap)
+        .filter((value) => value > 0)
+        .sort((a, b) => b - a);
+
+    /** 是否为顺子 */
+    const isStraight = getIsStraight(playingCardValuesMap);
+
+    /** 是否为同花 */
+    const isFlush = Object.values(playingCardSuitsMap).some(
+        (count) => count >= 5,
+    );
+
+    if (isFlush && valueCounts[0] === 5) {
+        return HandTypes.FlushFive;
+    }
+
+    if (isFlush && valueCounts[0] === 3 && valueCounts[1] === 2) {
+        return HandTypes.FlushHouse;
+    }
+
+    if (valueCounts[0] === 5) {
+        return HandTypes.FiveOfAKind;
+    }
+
+    if (isFlush && getIsRoyalStraight(playingCardValuesMap)) {
+        return HandTypes.RoyalFlush;
+    }
+
+    if (isFlush && isStraight) {
+        return HandTypes.StraightFlush;
+    }
+
+    if (valueCounts[0] === 4) {
+        return HandTypes.FourOfAKind;
+    }
+
+    if (valueCounts[0] === 3 && valueCounts[1] === 2) {
+        return HandTypes.FullHouse;
+    }
+
+    if (isFlush) {
+        return HandTypes.Flush;
+    }
+
+    if (isStraight) {
+        return HandTypes.Straight;
+    }
+
+    if (valueCounts[0] === 3) {
+        return HandTypes.ThreeOfAKind;
+    }
+
+    if (valueCounts[0] === 2 && valueCounts[1] === 2) {
+        return HandTypes.TwoPair;
+    }
+    if (valueCounts[0] === 2) {
+        return HandTypes.Pair;
+    }
+    return HandTypes.HighCard;
+}
+
+/**
+ * 判断手牌是否构成顺子
+ * @param playingCardValuesMap 牌值计数的Map
+ * @returns 是否为顺子
+ */
+function getIsStraight(
+    playingCardValuesMap: Record<PlayingCardValues, number>,
+): boolean {
+    //提取所有计数 > 0 的牌值，转为数字并排序
+    const activeValues = Object.keys(playingCardValuesMap)
+        .filter((key) => playingCardValuesMap[key as PlayingCardValues] > 0)
+        .map((key) => Number(key)) // 将 "1", "2" ... "13" 转为数字
+        .sort((a, b) => a - b);
+
+    // 去重后不足5张，不可能是顺子
+    if (activeValues.length < 5) return false;
+
+    // 首尾差值为4，且没有重复牌（因为activeValues是去重后的长度）
+    const isNormalStraight = activeValues[4] - activeValues[0] === 4;
+
+    // 检查是否通天顺：10-J-Q-K-A
+    const isRoyalStraight = getIsRoyalStraight(playingCardValuesMap);
+
+    return isNormalStraight || isRoyalStraight;
+}
+
+/**
+ * 判断手牌是否构成通天顺（10-J-Q-K-A）
+ * @param playingCardValuesMap 牌值计数的Map
+ * @returns 是否为通天顺
+ */
+function getIsRoyalStraight(
+    playingCardValuesMap: Record<PlayingCardValues, number>,
+): boolean {
+    return (
+        playingCardValuesMap[PlayingCardValues.Ten] > 0 &&
+        playingCardValuesMap[PlayingCardValues.Jack] > 0 &&
+        playingCardValuesMap[PlayingCardValues.Queen] > 0 &&
+        playingCardValuesMap[PlayingCardValues.King] > 0 &&
+        playingCardValuesMap[PlayingCardValues.Ace] > 0
+    );
 }
