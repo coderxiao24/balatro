@@ -64,6 +64,7 @@ export class GameButton {
         this.btnBg.fillColor = disabled ? 0x666666 : this.btnColor;
         this.btnText.setColor(disabled ? "#7A7A7A" : this.textColor);
         this.container.setAlpha(1);
+        this.container.y = this.originXY.y;
         if (disabled) {
             this.clearEvent();
         } else {
@@ -74,7 +75,7 @@ export class GameButton {
     bindEvent() {
         const { width } = this.scene.cameras.main;
         this.container.on("pointerover", () => {
-            this.container.y = this.container.y + calcPx(width, 12);
+            this.container.y = this.originXY.y + calcPx(width, 12);
             this.container.setAlpha(0.5);
         });
 
