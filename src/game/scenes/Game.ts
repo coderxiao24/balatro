@@ -16,7 +16,7 @@ import { GameData } from "@/types";
 import Random from "@xiaokaixuan/random";
 import { cloneDeep } from "lodash";
 import { PlayingCard } from "../entities/PlayingCard";
-import { Actions, Math } from "phaser";
+import { Actions, Display, GameObjects, Math } from "phaser";
 import { BalatroBackground } from "@/game/entities/shaders/BalatroBackground";
 import { AudioManager } from "../manager/AudioManager";
 import { BlindsDataMap, SUIT_RANK_MAP } from "@/config";
@@ -46,6 +46,11 @@ export class Game extends BaseScene {
     deckContainer: Phaser.GameObjects.Container;
     handPlayingCardsNumberText: Phaser.GameObjects.Text;
     currentDeckCardsNumberText: Phaser.GameObjects.Text;
+    playedCards: PlayingCard[];
+    organizingCardsContainer: GameObjects.Container;
+    playPlayingCardsButton: GameObjects.Container;
+    discardPlayingCardsButton: GameObjects.Container;
+    playedPlayingCards: PlayingCard[] = [];
 
     constructor() {
         super("Game");
@@ -155,9 +160,11 @@ export class Game extends BaseScene {
 
         // 2. 容器的基准坐标（居中点）
         const containerX =
-            calcPx(this.cameraWidth, 2105) + calcPx(this.cameraWidth, 182) / 2;
+            calcPx(this.cameraWidth, 2105) + calcPx(this.cameraWidth, 184) / 2;
         const containerY =
-            calcPx(this.cameraWidth, 880) + calcPx(this.cameraWidth, 248) / 2;
+            this.cameraHeight -
+            calcPx(this.cameraWidth, 77) -
+            this.playCardsContainerHeight / 2;
 
         // 3. 如果容器已存在，先清空旧内容（防止重复创建导致内存泄漏）
         if (this.deckContainer) {
@@ -186,9 +193,9 @@ export class Game extends BaseScene {
                         calcScale(
                             this.cameraWidth,
                             deckCard.container.displayWidth,
-                            182,
+                            184,
                         ) *
-                            (182 / 178),
+                            (184 / 178),
                     );
                 }
                 return deckCard.container!;
@@ -256,8 +263,8 @@ export class Game extends BaseScene {
             y:
                 this.cameraHeight -
                 calcPx(this.cameraWidth, 261) -
-                calcPx(this.cameraWidth, 253) / 2,
-            duration: 200,
+                this.playCardsContainerHeight / 2,
+            duration: 150,
             ease: "Back.easeOut",
             onComplete: () => {
                 // 进入游戏 抽满手牌上限
@@ -325,7 +332,7 @@ export class Game extends BaseScene {
         );
 
         // 理牌按钮容器
-        const organizingCardsContainer = this.add.container(
+        this.organizingCardsContainer = this.add.container(
             calcPx(this.cameraWidth, 1326) + calcPx(this.cameraWidth, 308) / 2,
             this.cameraHeight -
                 calcPx(this.cameraWidth, 72) -
@@ -339,7 +346,7 @@ export class Game extends BaseScene {
         );
 
         // 出牌按钮
-        const playPlayingCardsButton = createButton(
+        this.playPlayingCardsButton = createButton(
             this,
             calcPx(this.cameraWidth, 1074) + calcPx(this.cameraWidth, 242) / 2,
             this.cameraHeight -
@@ -350,28 +357,28 @@ export class Game extends BaseScene {
             0x0b9dfb,
             "出牌",
             calcPx(this.cameraWidth, 34),
-            () => {
-                console.log(
-                    666,
-                    getHandTypeByPlayingCards(
-                        this.handPlayingCards.filter((item) => item.isSelected),
-                    ),
+            async () => {
+                const selectedPlayingCards = this.handPlayingCards.filter(
+                    (item) => item.isSelected,
                 );
 
-                // todo 出牌动画
-                // const card1 = this.handPlayingCards.find(
-                //     (item) => item.isSelected,
-                // )?.container as Phaser.GameObjects.Container;
+                if (!selectedPlayingCards.length) return;
 
-                // const { tx, ty } = card1.getWorldTransformMatrix();
-                // this.handPlayCardsContainer.remove(card1);
-                // card1.x = tx;
-                // card1.y = ty;
+                console.log(
+                    "牌型",
+                    getHandTypeByPlayingCards(selectedPlayingCards),
+                );
+
+                await this.playPlayingCardHandPlayingCardUiChange(false);
+
+                for (const card of selectedPlayingCards) {
+                    await this.playPlayingCard(card);
+                }
             },
         );
 
         // 弃牌按钮
-        const discardPlayingCardsButton = createButton(
+        this.discardPlayingCardsButton = createButton(
             this,
             this.cameraWidth -
                 calcPx(this.cameraWidth, 783) -
@@ -388,6 +395,90 @@ export class Game extends BaseScene {
         );
     }
 
+    /**
+     * 出单张牌
+     */
+    async playPlayingCard(card: PlayingCard) {
+        if (!card.container) return;
+
+        // 关闭交互事件
+        card.setClickMode(PlayingCardClickModes.none);
+        card.setEnableDrag(false);
+
+        //拿到世界坐标
+        const { tx, ty } = card.container.getWorldTransformMatrix();
+        // 从手牌容器移除此牌
+        this.handPlayCardsContainer.remove(card.container);
+        // 将此牌坐标设置它的世界坐标 保持原位置不动
+        card.container.x = tx;
+        card.container.y = ty;
+
+        await new Promise<void>((resolve) => {
+            if (!card.container) return;
+            // 此牌开始移动到出牌区域
+            this.tweens.add({
+                targets: card.container,
+                x:
+                    calcPx(this.cameraWidth, 962) +
+                    card.container.displayWidth / 2 +
+                    this.playedPlayingCards.length *
+                        (card.container.displayWidth +
+                            calcPx(this.cameraWidth, 30)),
+                y:
+                    this.cameraHeight -
+                    calcPx(this.cameraWidth, 428) -
+                    card.container.displayHeight / 2,
+                duration: 150,
+                ease: "Back.easeOut",
+                onComplete: () => {
+                    resolve();
+                },
+            });
+        });
+        this.handPlayingCards = this.handPlayingCards.filter(
+            (item) => item !== card,
+        );
+        this.playedPlayingCards.push(card);
+    }
+
+    /**
+     * 出牌后手牌区域的ui变化
+     * @param isFinish 出牌是否完成
+     */
+    async playPlayingCardHandPlayingCardUiChange(isFinish: boolean) {
+        this.organizingCardsContainer.setVisible(isFinish);
+        this.playPlayingCardsButton.setVisible(isFinish);
+        this.discardPlayingCardsButton.setVisible(isFinish);
+
+        await new Promise<void>((resolve) => {
+            isFinish
+                ? this.tweens.add({
+                      targets: this.handPlayCardsContainer,
+                      y:
+                          this.cameraHeight -
+                          calcPx(this.cameraWidth, 261) -
+                          this.playCardsContainerHeight / 2,
+                      duration: 150,
+                      ease: "Back.easeOut",
+                      onComplete: () => {
+                          resolve();
+                      },
+                  })
+                : this.tweens.add({
+                      targets: this.handPlayCardsContainer,
+                      y:
+                          this.cameraHeight -
+                          calcPx(this.cameraWidth, 77) -
+                          this.playCardsContainerHeight / 2,
+                      duration: 150,
+                      ease: "Back.easeOut",
+                      onComplete: () => {
+                          resolve();
+                      },
+                  });
+        });
+    }
+
     organizeHandPlayingCards(type: "point" | "suit") {
         if (type === "point") {
             this.handPlayingCards.sort((a, b) => b.rank - a.rank);
@@ -396,7 +487,7 @@ export class Game extends BaseScene {
                 this.tweens.add({
                     targets: card.container,
                     x: this.getHandPlayingCardXByIndex(card, idx),
-                    duration: 200,
+                    duration: 150,
                     ease: "Back.easeOut",
                     onComplete: () => {
                         if (!card.container) return;
@@ -422,7 +513,7 @@ export class Game extends BaseScene {
                 this.tweens.add({
                     targets: card.container,
                     x: this.getHandPlayingCardXByIndex(card, idx),
-                    duration: 200,
+                    duration: 150,
                     ease: "Back.easeOut",
                     onComplete: () => {
                         if (!card.container) return;
@@ -689,9 +780,9 @@ export class Game extends BaseScene {
             calcScale(
                 this.cameraWidth,
                 itemPlayingCard.container.displayWidth,
-                180,
+                184,
             ) *
-                (180 / 176),
+                (184 / 176),
         );
         const percent =
             (this.handPlayingCards.length / this.gameData.handLimit) * 100;
