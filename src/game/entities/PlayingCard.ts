@@ -40,7 +40,7 @@ export class PlayingCard {
     private base: Phaser.GameObjects.Image | null = null;
     private overlay: Phaser.GameObjects.Image | null = null;
     private clickMode: PlayingCardClickModes = PlayingCardClickModes.none;
-    private selected = false;
+    selected = false;
 
     // 长按拖拽相关属性
     private enableDrag = false;
@@ -165,7 +165,7 @@ export class PlayingCard {
     }
 
     /** 切换牌的正面/背面（带动画） */
-    flip(): void {
+    flip(duration = 300): void {
         if (!this.scene || !this.container || !this.base || !this.overlay)
             return;
         if (this.dragging) return;
@@ -177,7 +177,7 @@ export class PlayingCard {
         this.scene.tweens.add({
             targets: this.container,
             scaleX: 0,
-            duration: 150,
+            duration: duration / 2,
             ease: "Sine.easeIn",
             onComplete: () => {
                 this.faceUp = showFront;
@@ -187,7 +187,7 @@ export class PlayingCard {
                 this.scene!.tweens.add({
                     targets: this.container,
                     scaleX: this.scale || 1,
-                    duration: 150,
+                    duration: duration / 2,
                     ease: "Sine.easeOut",
                 });
             },

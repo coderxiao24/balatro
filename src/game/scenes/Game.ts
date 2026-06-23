@@ -20,9 +20,10 @@ import { Actions, Display, GameObjects, Math } from "phaser";
 import { BalatroBackground } from "@/game/entities/shaders/BalatroBackground";
 import { AudioManager } from "../manager/AudioManager";
 import { BlindsDataMap, SUIT_RANK_MAP } from "@/config";
-import { createButton } from "../ui";
+import { GameButton } from "../ui";
 
 export class Game extends BaseScene {
+    sortType: "point" | "suit" = "point";
     bigBlindCard: BlindCard;
     smallBlindCard: BlindCard;
     bossBlindCard: BlindCard;
@@ -46,11 +47,19 @@ export class Game extends BaseScene {
     deckContainer: Phaser.GameObjects.Container;
     handPlayingCardsNumberText: Phaser.GameObjects.Text;
     currentDeckCardsNumberText: Phaser.GameObjects.Text;
-    playedCards: PlayingCard[];
+
     organizingCardsContainer: GameObjects.Container;
-    playPlayingCardsButton: GameObjects.Container;
-    discardPlayingCardsButton: GameObjects.Container;
+    /**
+     * 出牌按钮
+     */
+    playPlayingCardsButton: GameButton;
+    /**
+     * 弃牌按钮
+     */
+    discardPlayingCardsButton: GameButton;
     playedPlayingCards: PlayingCard[] = [];
+    playedPlayCardsContainer: GameObjects.Container;
+    playedPlayCardsContainerOriginalX: number;
 
     constructor() {
         super("Game");
@@ -228,6 +237,7 @@ export class Game extends BaseScene {
      * 创建回合内的UI
      */
     createUiWithinRound() {
+        // 手牌容器开始
         const Bg = this.add
             .rectangle(
                 0,
@@ -264,7 +274,7 @@ export class Game extends BaseScene {
                 this.cameraHeight -
                 calcPx(this.cameraWidth, 261) -
                 this.playCardsContainerHeight / 2,
-            duration: 150,
+            duration: 200,
             ease: "Back.easeOut",
             onComplete: () => {
                 // 进入游戏 抽满手牌上限
@@ -272,6 +282,23 @@ export class Game extends BaseScene {
             },
         });
 
+        // 手牌容器结束
+
+        this.playedPlayCardsContainerOriginalX =
+            calcPx(this.cameraWidth, 1390) + calcPx(this.cameraWidth, 184) / 2;
+        // 打出的牌容器开始
+        this.playedPlayCardsContainer = this.add
+            .container(
+                this.playedPlayCardsContainerOriginalX,
+                this.cameraHeight -
+                    calcPx(this.cameraWidth, 428) -
+                    calcPx(this.cameraWidth, 248) / 2,
+            )
+            .setDepth(1);
+
+        // 打出的牌容器结束
+
+        // 理牌容器开始
         const organizingCardsBorder = this.add
             .rectangle(
                 0,
@@ -296,7 +323,7 @@ export class Game extends BaseScene {
             )
             .setOrigin(0.5, 0);
 
-        const pointButton = createButton(
+        const pointButton = new GameButton(
             this,
             -calcPx(this.cameraWidth, 308) / 2 +
                 calcPx(this.cameraWidth, 24) +
@@ -310,10 +337,11 @@ export class Game extends BaseScene {
             "点数",
             calcPx(this.cameraWidth, 24),
             () => {
-                this.organizeHandPlayingCards("point");
+                this.sortType = "point";
+                this.sortHandPlayingCards(this.sortType);
             },
-        );
-        const suitButton = createButton(
+        ).container;
+        const suitButton = new GameButton(
             this,
             calcPx(this.cameraWidth, 308) / 2 -
                 calcPx(this.cameraWidth, 24) -
@@ -327,9 +355,10 @@ export class Game extends BaseScene {
             "花色",
             calcPx(this.cameraWidth, 24),
             () => {
-                this.organizeHandPlayingCards("suit");
+                this.sortType = "suit";
+                this.sortHandPlayingCards(this.sortType);
             },
-        );
+        ).container;
 
         // 理牌按钮容器
         this.organizingCardsContainer = this.add.container(
@@ -344,9 +373,10 @@ export class Game extends BaseScene {
                 suitButton,
             ],
         );
+        // 理牌容器结束
 
-        // 出牌按钮
-        this.playPlayingCardsButton = createButton(
+        // 出牌按钮开始
+        this.playPlayingCardsButton = new GameButton(
             this,
             calcPx(this.cameraWidth, 1074) + calcPx(this.cameraWidth, 242) / 2,
             this.cameraHeight -
@@ -364,21 +394,40 @@ export class Game extends BaseScene {
 
                 if (!selectedPlayingCards.length) return;
 
-                console.log(
-                    "牌型",
-                    getHandTypeByPlayingCards(selectedPlayingCards),
-                );
+                // 出牌按钮点击后直接把出牌和弃牌按钮禁用
+                this.updatePlayAndDiscardButtonDisabled(true);
 
                 await this.playPlayingCardHandPlayingCardUiChange(false);
 
                 for (const card of selectedPlayingCards) {
                     await this.playPlayingCard(card);
                 }
-            },
-        );
 
-        // 弃牌按钮
-        this.discardPlayingCardsButton = createButton(
+                // todo 开始计分
+                console.log(
+                    "牌型",
+                    getHandTypeByPlayingCards(selectedPlayingCards),
+                );
+
+                // 计分完成
+
+                // 已打出的牌离场
+                await this.playedPlayingCardsLeave();
+
+                await this.playPlayingCardHandPlayingCardUiChange(true);
+
+                await this.organizeCurrentHandPlayingCards();
+                // 下一轮抽牌
+                this.drawHandPlayingCards(
+                    this.gameData.handLimit - this.handPlayingCards.length,
+                );
+            },
+            true,
+        );
+        // 出牌按钮结束
+
+        // 弃牌按钮开始
+        this.discardPlayingCardsButton = new GameButton(
             this,
             this.cameraWidth -
                 calcPx(this.cameraWidth, 783) -
@@ -392,7 +441,48 @@ export class Game extends BaseScene {
             "弃牌",
             calcPx(this.cameraWidth, 34),
             () => {},
+            true,
         );
+        // 弃牌按钮结束
+    }
+
+    /**
+     * 已打出的牌离场
+     */
+    async playedPlayingCardsLeave() {
+        if (!this.playedPlayingCards.length)
+            throw new Error("已打出的牌不能为空");
+
+        for (const card of this.playedPlayingCards) {
+            if (!card.container) throw new Error("已打出的牌容器不能为空");
+            //拿到世界坐标
+            const { tx, ty } = card.container.getWorldTransformMatrix();
+            // 从出牌容器移除此牌
+            this.playedPlayCardsContainer.remove(card.container);
+            card.container.x = tx;
+            card.container.y = ty;
+            card.container.setDepth(0);
+
+            await new Promise<void>((resolve) => {
+                if (!card.container) return;
+                this.tweens.add({
+                    targets: card.container,
+                    x: this.cameraWidth + card.container.displayHeight / 2,
+                    y: card.container.y - card.container.displayHeight / 2,
+                    rotation: Math.DegToRad(90),
+                    duration: 200,
+                    ease: "Sine.easeIn",
+                    onComplete: () => {
+                        card.removeFromScene();
+                        resolve();
+                    },
+                    onStart: () => {
+                        card.flip(200);
+                    },
+                });
+            });
+        }
+        this.playedPlayingCards = [];
     }
 
     /**
@@ -409,34 +499,65 @@ export class Game extends BaseScene {
         const { tx, ty } = card.container.getWorldTransformMatrix();
         // 从手牌容器移除此牌
         this.handPlayCardsContainer.remove(card.container);
-        // 将此牌坐标设置它的世界坐标 保持原位置不动
-        card.container.x = tx;
-        card.container.y = ty;
 
-        await new Promise<void>((resolve) => {
+        // 计算出相对于出牌区域的坐标
+        const localPoint = this.playedPlayCardsContainer.getLocalPoint(tx, ty);
+
+        // 将相对于出牌区域的坐标设置为此牌的坐标
+        card.container.x = localPoint.x;
+        card.container.y = localPoint.y;
+
+        const bounds = this.playedPlayCardsContainer.getBounds();
+
+        // 将此牌添加到出牌区域容器内
+        this.playedPlayCardsContainer.add(card.container);
+
+        // 此牌移动到出牌容器内对应位置
+        const p1 = new Promise<void>((resolve) => {
             if (!card.container) return;
-            // 此牌开始移动到出牌区域
             this.tweens.add({
                 targets: card.container,
                 x:
-                    calcPx(this.cameraWidth, 962) +
                     card.container.displayWidth / 2 +
                     this.playedPlayingCards.length *
                         (card.container.displayWidth +
                             calcPx(this.cameraWidth, 30)),
-                y:
-                    this.cameraHeight -
-                    calcPx(this.cameraWidth, 428) -
-                    card.container.displayHeight / 2,
-                duration: 150,
+                y: 0,
+                duration: 200,
                 ease: "Back.easeOut",
                 onComplete: () => {
                     resolve();
                 },
             });
         });
+
+        // 出牌容器整体居中
+        const p2 = new Promise<void>((resolve) => {
+            if (!card.container) return;
+            this.tweens.add({
+                targets: this.playedPlayCardsContainer,
+                x:
+                    this.playedPlayCardsContainerOriginalX -
+                    (bounds.width + card.container.displayWidth) / 2,
+                duration: 200,
+                ease: "Back.easeOut",
+                onComplete: () => {
+                    resolve();
+                },
+            });
+        });
+
+        // 扑克牌的移动和出牌容器的移动同时进行
+        await Promise.all([p1, p2]);
+
+        // 动画完成后把扑克牌是否选中状态置为false，已打出的手牌不存在选中或不选中状态
+        card.selected = false;
+
         this.handPlayingCards = this.handPlayingCards.filter(
             (item) => item !== card,
+        );
+        this.handPlayingCardsNumberText.setText(
+            `${this.handPlayingCards.length}/${this.gameData.handLimit}`,
         );
         this.playedPlayingCards.push(card);
     }
@@ -447,8 +568,8 @@ export class Game extends BaseScene {
      */
     async playPlayingCardHandPlayingCardUiChange(isFinish: boolean) {
         this.organizingCardsContainer.setVisible(isFinish);
-        this.playPlayingCardsButton.setVisible(isFinish);
-        this.discardPlayingCardsButton.setVisible(isFinish);
+        this.playPlayingCardsButton.container.setVisible(isFinish);
+        this.discardPlayingCardsButton.container.setVisible(isFinish);
 
         await new Promise<void>((resolve) => {
             isFinish
@@ -458,7 +579,7 @@ export class Game extends BaseScene {
                           this.cameraHeight -
                           calcPx(this.cameraWidth, 261) -
                           this.playCardsContainerHeight / 2,
-                      duration: 150,
+                      duration: 200,
                       ease: "Back.easeOut",
                       onComplete: () => {
                           resolve();
@@ -470,7 +591,7 @@ export class Game extends BaseScene {
                           this.cameraHeight -
                           calcPx(this.cameraWidth, 77) -
                           this.playCardsContainerHeight / 2,
-                      duration: 150,
+                      duration: 200,
                       ease: "Back.easeOut",
                       onComplete: () => {
                           resolve();
@@ -479,25 +600,14 @@ export class Game extends BaseScene {
         });
     }
 
-    organizeHandPlayingCards(type: "point" | "suit") {
+    /**
+     * 排序手牌卡牌
+     * @param type 排序类型
+     */
+    async sortHandPlayingCards(type: "point" | "suit") {
         if (type === "point") {
             this.handPlayingCards.sort((a, b) => b.rank - a.rank);
-            this.handPlayingCards.forEach((card, idx) => {
-                if (!card.container) return;
-                this.tweens.add({
-                    targets: card.container,
-                    x: this.getHandPlayingCardXByIndex(card, idx),
-                    duration: 150,
-                    ease: "Back.easeOut",
-                    onComplete: () => {
-                        if (!card.container) return;
-                        this.handPlayCardsContainer.moveTo(
-                            card.container,
-                            idx + 2,
-                        );
-                    },
-                });
-            });
+            await this.organizeCurrentHandPlayingCards();
         } else {
             this.handPlayingCards.sort((a, b) => {
                 // 先比花色权重
@@ -508,23 +618,35 @@ export class Game extends BaseScene {
                 //  花色相同，再比点数
                 return b.rank - a.rank;
             });
-            this.handPlayingCards.forEach((card, idx) => {
-                if (!card.container) return;
-                this.tweens.add({
-                    targets: card.container,
-                    x: this.getHandPlayingCardXByIndex(card, idx),
-                    duration: 150,
-                    ease: "Back.easeOut",
-                    onComplete: () => {
-                        if (!card.container) return;
-                        this.handPlayCardsContainer.moveTo(
-                            card.container,
-                            idx + 2,
-                        );
-                    },
-                });
-            });
+            await this.organizeCurrentHandPlayingCards();
         }
+    }
+
+    /**
+     * 整理当前手牌卡牌的位置
+     */
+    async organizeCurrentHandPlayingCards() {
+        await Promise.all(
+            this.handPlayingCards.map((card, idx) => {
+                if (!card.container) throw new Error("手牌容器不存在");
+                return new Promise<void>((resolve) => {
+                    this.tweens.add({
+                        targets: card.container,
+                        x: this.getHandPlayingCardXByIndex(card, idx),
+                        duration: 200,
+                        ease: "Back.easeOut",
+                        onComplete: () => {
+                            if (!card.container) return;
+                            this.handPlayCardsContainer.moveTo(
+                                card.container,
+                                idx + 2,
+                            );
+                            resolve();
+                        },
+                    });
+                });
+            }),
+        );
     }
 
     /**
@@ -541,6 +663,7 @@ export class Game extends BaseScene {
                 this.currentDeck = this.random.shuffle(
                     this.gameData.completeDeck,
                 );
+                this.createOrUpdateDeckContainer();
                 drawnCard = this.currentDeck.shift()!;
             }
             this.handPlayingCards.push(
@@ -557,8 +680,8 @@ export class Game extends BaseScene {
 
         //手牌就位后，启用事件监听
         this.enableHandPlayingCardsEvent();
-        // 默认按点数排序
-        this.organizeHandPlayingCards("point");
+        // 就位后 按照上次排序类型理牌
+        this.sortHandPlayingCards(this.sortType);
     }
     enableHandPlayingCardsEvent() {
         this.handPlayingCards.forEach((itemPlayingCard) => {
@@ -574,6 +697,9 @@ export class Game extends BaseScene {
                         this.handPlayingCards.filter((item) => item.isSelected)
                             .length < 5
                     );
+                },
+                onSelectEnd: () => {
+                    this.updatePlayAndDiscardButtonDisabled();
                 },
             });
             itemPlayingCard.setDragCallbacks({
@@ -671,7 +797,7 @@ export class Game extends BaseScene {
                                 this.tweens.add({
                                     targets: item.container,
                                     x: itemTargetX,
-                                    duration: 150,
+                                    duration: 200,
                                     ease: "Back.easeOut",
                                 });
                             }
@@ -747,6 +873,23 @@ export class Game extends BaseScene {
     }
 
     /**
+     * 更新出牌和弃牌按钮的禁用状态
+     * @param disabled 是否禁用 不传则根据是否有选中的牌来判断 传入则设置为该值
+     */
+    updatePlayAndDiscardButtonDisabled(disabled?: boolean) {
+        if (disabled !== undefined) {
+            this.playPlayingCardsButton.setDisabled(disabled);
+            this.discardPlayingCardsButton.setDisabled(disabled);
+            return;
+        }
+        const selectedCards = this.handPlayingCards.filter(
+            (item) => item.isSelected,
+        );
+        this.playPlayingCardsButton.setDisabled(!selectedCards.length);
+        this.discardPlayingCardsButton.setDisabled(!selectedCards.length);
+    }
+
+    /**
      * 创建单张手牌卡牌
      * @param playingCards 手牌卡牌数组
      */
@@ -796,7 +939,7 @@ export class Game extends BaseScene {
                     itemPlayingCard,
                     this.handPlayingCards.length,
                 ),
-                duration: 100,
+                duration: 200,
                 ease: "Back.easeOut",
                 onComplete: () => {
                     resolve();
@@ -810,7 +953,7 @@ export class Game extends BaseScene {
                             rate: 0.85 + (percent * 0.2) / 100,
                         },
                     );
-                    itemPlayingCard.flip();
+                    itemPlayingCard.flip(200);
                 },
             });
         });

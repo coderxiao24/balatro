@@ -18,7 +18,7 @@ import { preferences } from "@/utils";
 import { cloneDeep } from "lodash";
 
 import { INITIAL_PLAYING_CARDS_ARRAY } from "@/config";
-import { createButton } from "../ui";
+import { GameButton } from "../ui";
 
 export class MainMenu extends BaseScene {
     background: GameObjects.Image;
@@ -85,7 +85,7 @@ export class MainMenu extends BaseScene {
 
         const spacing = calcPx(width, 20);
 
-        const startGameBtn = createButton(
+        const startGameBtn = new GameButton(
             this,
             -(calcPx(width, 352) / 2 + calcPx(width, 256) / 2 + spacing),
             0,
@@ -112,7 +112,7 @@ export class MainMenu extends BaseScene {
             },
         );
 
-        const optionBtn = createButton(
+        const optionBtn = new GameButton(
             this,
             0,
             0,
@@ -126,7 +126,7 @@ export class MainMenu extends BaseScene {
             },
         );
 
-        const favoriteBtn = createButton(
+        const favoriteBtn = new GameButton(
             this,
             calcPx(width, 352) / 2 + calcPx(width, 256) / 2 + spacing,
             0,
@@ -140,7 +140,11 @@ export class MainMenu extends BaseScene {
             },
         );
 
-        this.buttonGroup.add([startGameBtn, optionBtn, favoriteBtn]);
+        this.buttonGroup.add([
+            startGameBtn.container,
+            optionBtn.container,
+            favoriteBtn.container,
+        ]);
 
         const groupBg = this.add.rectangle(
             0,

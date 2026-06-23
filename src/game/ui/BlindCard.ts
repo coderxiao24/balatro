@@ -7,7 +7,7 @@ import {
     stringToHexNumber,
 } from "@/utils";
 import { GameObjects } from "phaser";
-import { createButton } from ".";
+import { GameButton } from ".";
 import { blindCardsBtnTextMap, BlindsDataMap, stakeDataMap } from "@/config";
 
 export default class BlindCard extends GameObjects.Container {
@@ -127,7 +127,7 @@ export default class BlindCard extends GameObjects.Container {
             .setRounded(calcPx(this.cameraWidth, 12))
             .setStrokeStyle(calcPx(this.cameraWidth, 5), 0x4f6368);
 
-        const chooseBtn = createButton(
+        const chooseBtn = new GameButton(
             this.currentScene,
             0,
             -this.cardHeight / 2 +
@@ -140,7 +140,7 @@ export default class BlindCard extends GameObjects.Container {
             calcPx(this.cameraWidth, 50),
             this.chooseBtnClick,
             this.CardsType !== BlindCardTypes.Active,
-        );
+        ).container;
 
         const blindNameBg = this.currentScene.add
             .rectangle(
