@@ -54,6 +54,7 @@ export class Preloader extends BaseScene {
         this.load.audio("card1", "assets/sounds/card1.ogg");
         this.load.audio("cardSlide1", "assets/sounds/cardSlide1.ogg");
         this.load.audio("cardSlide2", "assets/sounds/cardSlide2.ogg");
+        this.load.audio("cardFan2", "assets/sounds/cardFan2.ogg");
         this.load.audio("music1", "assets/sounds/music1.ogg");
         this.load.audio("button", "assets/sounds/button.ogg");
         this.load.audio("whoosh1", "assets/sounds/whoosh1.ogg");

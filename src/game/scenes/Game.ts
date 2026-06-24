@@ -399,8 +399,14 @@ export class Game extends BaseScene {
 
                 await this.playPlayingCardHandPlayingCardUiChange(false);
 
-                for (const card of selectedPlayingCards) {
-                    await this.playPlayingCard(card);
+                for (let i = 0; i < selectedPlayingCards.length; i++) {
+                    const card = selectedPlayingCards[i];
+
+                    await this.playPlayingCard(
+                        card,
+                        i,
+                        selectedPlayingCards.length,
+                    );
                 }
 
                 // todo 开始计分
@@ -408,7 +414,7 @@ export class Game extends BaseScene {
                     "牌型",
                     getHandTypeByPlayingCards(selectedPlayingCards),
                 );
-
+                await new Promise((resolve) => setTimeout(resolve, 1000));
                 // 计分完成
 
                 // 已打出的牌离场
@@ -453,7 +459,8 @@ export class Game extends BaseScene {
         if (!this.playedPlayingCards.length)
             throw new Error("已打出的牌不能为空");
 
-        for (const card of this.playedPlayingCards) {
+        for (let index = 0; index < this.playedPlayingCards.length; index++) {
+            const card = this.playedPlayingCards[index];
             if (!card.container) throw new Error("已打出的牌容器不能为空");
             //拿到世界坐标
             const { tx, ty } = card.container.getWorldTransformMatrix();
@@ -477,6 +484,17 @@ export class Game extends BaseScene {
                         resolve();
                     },
                     onStart: () => {
+                        const percent =
+                            (index + 1) / this.playedPlayingCards.length;
+
+                        AudioManager.getInstance().playSound(
+                            this.scene.key,
+                            "card1",
+                            {
+                                volume: 0.6,
+                                rate: 0.85 + percent * 0.2,
+                            },
+                        );
                         card.flip(200);
                     },
                 });
@@ -488,7 +506,11 @@ export class Game extends BaseScene {
     /**
      * 出单张牌
      */
-    async playPlayingCard(card: PlayingCard) {
+    async playPlayingCard(
+        card: PlayingCard,
+        index: number = 0,
+        totalCount: number = 0,
+    ) {
         if (!card.container) return;
 
         // 关闭交互事件
@@ -549,6 +571,12 @@ export class Game extends BaseScene {
 
         // 扑克牌的移动和出牌容器的移动同时进行
         await Promise.all([p1, p2]);
+
+        const percent = (index + 1) / totalCount;
+        AudioManager.getInstance().playSound(this.scene.key, "card1", {
+            volume: 0.6,
+            rate: 0.85 + percent * 0.2,
+        });
 
         // 动画完成后把扑克牌是否选中状态置为false，已打出的手牌不存在选中或不选中状态
         card.selected = false;
@@ -660,6 +688,7 @@ export class Game extends BaseScene {
                 drawnCard = this.currentDeck.shift()!;
             } else {
                 // 牌堆已经空了 重新洗牌补充牌堆
+                // todo 后续改为牌堆空了游戏结束
                 this.currentDeck = this.random.shuffle(
                     this.gameData.completeDeck,
                 );
@@ -945,6 +974,7 @@ export class Game extends BaseScene {
                     resolve();
                 },
                 onStart: () => {
+                    itemPlayingCard.flip(200);
                     AudioManager.getInstance().playSound(
                         this.scene.key,
                         "card1",
@@ -953,7 +983,6 @@ export class Game extends BaseScene {
                             rate: 0.85 + (percent * 0.2) / 100,
                         },
                     );
-                    itemPlayingCard.flip(200);
                 },
             });
         });
