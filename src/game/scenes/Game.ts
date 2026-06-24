@@ -446,7 +446,86 @@ export class Game extends BaseScene {
             0xfc5f54,
             "弃牌",
             calcPx(this.cameraWidth, 34),
-            () => {},
+            async () => {
+                const selectedPlayingCards = this.handPlayingCards.filter(
+                    (item) => item.isSelected,
+                );
+                if (!selectedPlayingCards.length) return;
+                // 弃牌按钮点击后直接把出牌和弃牌按钮禁用
+                this.updatePlayAndDiscardButtonDisabled(true);
+
+                await this.playPlayingCardHandPlayingCardUiChange(false);
+
+                for (let i = 0; i < selectedPlayingCards.length; i++) {
+                    const card = selectedPlayingCards[i];
+                    if (!card.container)
+                        throw new Error("card container is null");
+
+                    // 关闭交互
+                    card.setClickMode(PlayingCardClickModes.none);
+                    card.setEnableDrag(false);
+
+                    //拿到世界坐标
+                    const { tx, ty } = card.container.getWorldTransformMatrix();
+                    // 从手牌容器移除此牌
+                    this.handPlayCardsContainer.remove(card.container);
+
+                    card.container.x = tx;
+                    card.container.y = ty;
+
+                    await new Promise<void>((resolve) => {
+                        if (!card.container) return;
+                        this.tweens.add({
+                            targets: card.container,
+                            x:
+                                this.cameraWidth +
+                                card.container.displayHeight / 2,
+                            y:
+                                card.container.y -
+                                card.container.displayHeight / 2,
+                            rotation: Math.DegToRad(90),
+                            duration: 200,
+                            ease: "Sine.easeIn",
+                            onComplete: () => {
+                                resolve();
+                            },
+                            onStart: () => {
+                                const percent =
+                                    (i + 1) / selectedPlayingCards.length;
+                                AudioManager.getInstance().playSound(
+                                    this.scene.key,
+                                    "card1",
+                                    {
+                                        volume: 0.6,
+                                        rate: 0.85 + percent * 0.2,
+                                    },
+                                );
+                                card.flip(200);
+                            },
+                        });
+                    });
+
+                    // 移除选中状态
+                    card.selected = false;
+
+                    this.handPlayingCards = this.handPlayingCards.filter(
+                        (item) => item !== card,
+                    );
+                    this.handPlayingCardsNumberText.setText(
+                        `${this.handPlayingCards.length}/${this.gameData.handLimit}`,
+                    );
+
+                    card.removeFromScene();
+                }
+
+                await this.playPlayingCardHandPlayingCardUiChange(true);
+
+                await this.organizeCurrentHandPlayingCards();
+                // 下一轮抽牌
+                this.drawHandPlayingCards(
+                    this.gameData.handLimit - this.handPlayingCards.length,
+                );
+            },
             true,
         );
         // 弃牌按钮结束
@@ -480,7 +559,6 @@ export class Game extends BaseScene {
                     duration: 200,
                     ease: "Sine.easeIn",
                     onComplete: () => {
-                        card.removeFromScene();
                         resolve();
                     },
                     onStart: () => {
@@ -499,6 +577,7 @@ export class Game extends BaseScene {
                     },
                 });
             });
+            card.removeFromScene();
         }
         this.playedPlayingCards = [];
     }
