@@ -21,6 +21,7 @@ import { BalatroBackground } from "@/game/entities/shaders/BalatroBackground";
 import { AudioManager } from "../manager/AudioManager";
 import { BlindsDataMap, SUIT_RANK_MAP } from "@/config";
 import { GameButton } from "../ui";
+import LeftBoard from "../ui/LeftBoard";
 
 export class Game extends BaseScene {
     sortType: "point" | "suit" = "point";
@@ -60,6 +61,7 @@ export class Game extends BaseScene {
     playedPlayingCards: PlayingCard[] = [];
     playedPlayCardsContainer: GameObjects.Container;
     playedPlayCardsContainerOriginalX: number;
+    leftBoard: LeftBoard;
 
     constructor() {
         super("Game");
@@ -135,6 +137,13 @@ export class Game extends BaseScene {
             ante: this.gameData.ante,
             stakeName: this.gameData.stake,
         });
+
+        this.leftBoard = new LeftBoard({
+            scene: this,
+            stakeName: this.gameData.stake,
+        });
+
+        this.leftBoard.addToScene();
 
         AudioManager.getInstance().playSound(this.scene.key, "cancel");
         this.smallBlindCard.addToScene();
