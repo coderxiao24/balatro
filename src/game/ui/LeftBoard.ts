@@ -45,11 +45,19 @@ export default class LeftBoard extends GameObjects.Container {
             )
             .setStrokeStyle(calcPx(this.cameraWidth, 3), 0x000000, 0.2);
 
-        const roundScoreContainer = this.crateRoundScore();
+        const roundScoreContainer = this.createRoundScore();
 
-        this.container.add([border, bg, roundScoreContainer]);
+        const currentScoreContainer = this.createCurrentScore();
+
+        this.container.add([
+            border,
+            bg,
+            roundScoreContainer,
+            currentScoreContainer,
+        ]);
     }
-    crateRoundScore() {
+
+    createRoundScore() {
         const container = this.scene.add.container(
             0,
             -this.BoardHeight / 2 +
@@ -136,6 +144,105 @@ export default class LeftBoard extends GameObjects.Container {
         );
 
         container.add([bg, roundScoreText, childContainer]);
+
+        return container;
+    }
+    createCurrentScore() {
+        const container = this.scene.add.container(
+            0,
+            -this.BoardHeight / 2 +
+                calcPx(this.cameraWidth, 510) +
+                calcPx(this.cameraWidth, 243) / 2,
+        );
+
+        const bg = this.scene.add
+            .rectangle(
+                0,
+                0,
+                calcPx(this.cameraWidth, 476),
+                calcPx(this.cameraWidth, 243),
+                0x343e40,
+            )
+            .setRounded(calcPx(this.cameraWidth, 12));
+
+        const chipsBg = this.scene.add
+            .rectangle(
+                0,
+                0,
+                calcPx(this.cameraWidth, 194),
+                calcPx(this.cameraWidth, 100),
+                0x0b9dfb,
+            )
+            .setRounded(calcPx(this.cameraWidth, 12));
+
+        const chipsText = this.scene.add
+            .text(
+                calcPx(this.cameraWidth, 194) / 2 -
+                    calcPx(this.cameraWidth, 10),
+                0,
+                "0",
+                {
+                    fontSize: calcPx(this.cameraWidth, 62),
+                    color: "#FFF",
+                    fontFamily: "NotoSansSC",
+                },
+            )
+            .setOrigin(1, 0.5);
+
+        const multBg = this.scene.add
+            .rectangle(
+                0,
+                0,
+                calcPx(this.cameraWidth, 194),
+                calcPx(this.cameraWidth, 100),
+                0xfc5f54,
+            )
+            .setRounded(calcPx(this.cameraWidth, 12));
+
+        const multText = this.scene.add
+            .text(
+                -calcPx(this.cameraWidth, 194) / 2 +
+                    calcPx(this.cameraWidth, 10),
+                0,
+                "0",
+                {
+                    fontSize: calcPx(this.cameraWidth, 62),
+                    color: "#FFF",
+                    fontFamily: "NotoSansSC",
+                },
+            )
+            .setOrigin(0, 0.5);
+
+        const chipsContainer = this.scene.add.container(
+            -calcPx(this.cameraWidth, 476) / 2 +
+                calcPx(this.cameraWidth, 194) / 2 +
+                calcPx(this.cameraWidth, 16),
+            calcPx(this.cameraWidth, 243) / 2 -
+                calcPx(this.cameraWidth, 100) / 2 -
+                calcPx(this.cameraWidth, 22),
+            [chipsBg, chipsText],
+        );
+
+        const multContainer = this.scene.add.container(
+            calcPx(this.cameraWidth, 476) / 2 -
+                calcPx(this.cameraWidth, 194) / 2 -
+                calcPx(this.cameraWidth, 16),
+            calcPx(this.cameraWidth, 243) / 2 -
+                calcPx(this.cameraWidth, 100) / 2 -
+                calcPx(this.cameraWidth, 22),
+            [multBg, multText],
+        );
+
+        const multImg = this.scene.add.image(
+            0,
+            calcPx(this.cameraWidth, 243) / 2 -
+                calcPx(this.cameraWidth, 100) / 2 -
+                calcPx(this.cameraWidth, 22),
+            "mult",
+        );
+        multImg.setScale(calcScale(this.cameraWidth, multImg.displayWidth, 36));
+
+        container.add([bg, chipsContainer, multContainer, multImg]);
 
         return container;
     }
