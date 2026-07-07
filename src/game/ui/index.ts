@@ -42,7 +42,7 @@ export class GameButton {
 
         this.btnText = scene.add
             .text(0, 0, text, {
-                fontSize: `${this.fontSize}px`,
+                fontSize: this.fontSize,
                 color: this.textColor,
                 fontFamily: "NotoSansSC",
             })

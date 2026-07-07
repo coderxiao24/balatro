@@ -49,14 +49,65 @@ export default class LeftBoard extends GameObjects.Container {
 
         const currentScoreContainer = this.createCurrentScore();
 
+        const numberOfPlaysContainer = this.createNumberOfPlays();
+
+        const numberOfDiscardsContainer = this.createNumberOfDiscards();
+
+        const amountOfMoneyContainer = this.createAmountOfMoneyContainer();
+
+        const numberOfAnteContainer = this.createNumberOfAnte();
+        const numberOfRoundContainer = this.createNumberOfRound();
+
+        const gameInfoButton = new GameButton(
+            this.scene,
+            -this.BoardWidth / 2 +
+                calcPx(this.cameraWidth, 30) +
+                calcPx(this.cameraWidth, 144) / 2,
+            -this.BoardHeight / 2 +
+                calcPx(this.cameraWidth, 778) +
+                calcPx(this.cameraWidth, 170) / 2,
+            calcPx(this.cameraWidth, 144),
+            calcPx(this.cameraWidth, 170),
+            0xfc5f54,
+            "比赛\n信息",
+            calcPx(this.cameraWidth, 36),
+            () => {},
+        );
+
+        const optionsButton = new GameButton(
+            this.scene,
+            -this.BoardWidth / 2 +
+                calcPx(this.cameraWidth, 30) +
+                calcPx(this.cameraWidth, 144) / 2,
+            -this.BoardHeight / 2 +
+                calcPx(this.cameraWidth, 966) +
+                calcPx(this.cameraWidth, 170) / 2,
+            calcPx(this.cameraWidth, 144),
+            calcPx(this.cameraWidth, 170),
+            0xfca210,
+            "选项",
+            calcPx(this.cameraWidth, 36),
+            () => {},
+        );
+
         this.container.add([
             border,
             bg,
             roundScoreContainer,
             currentScoreContainer,
+            numberOfPlaysContainer,
+            numberOfDiscardsContainer,
+            amountOfMoneyContainer,
+            numberOfAnteContainer,
+            numberOfRoundContainer,
+            gameInfoButton.container,
+            optionsButton.container,
         ]);
     }
 
+    /**
+     * 创建回合分数容器
+     */
     createRoundScore() {
         const container = this.scene.add.container(
             0,
@@ -147,6 +198,9 @@ export default class LeftBoard extends GameObjects.Container {
 
         return container;
     }
+    /**
+     * 创建当前分数容器
+     */
     createCurrentScore() {
         const container = this.scene.add.container(
             0,
@@ -243,6 +297,269 @@ export default class LeftBoard extends GameObjects.Container {
         multImg.setScale(calcScale(this.cameraWidth, multImg.displayWidth, 36));
 
         container.add([bg, chipsContainer, multContainer, multImg]);
+
+        return container;
+    }
+    /**
+     * 创建剩余出牌次数容器
+     */
+    createNumberOfPlays() {
+        const width = calcPx(this.cameraWidth, 140);
+        const height = calcPx(this.cameraWidth, 116);
+        const container = this.scene.add.container(
+            -this.BoardWidth / 2 + calcPx(this.cameraWidth, 196) + width / 2,
+            -this.BoardHeight / 2 + calcPx(this.cameraWidth, 768) + height / 2,
+        );
+
+        const bg = this.scene.add
+            .rectangle(0, 0, width, height, 0x343e40)
+            .setRounded(calcPx(this.cameraWidth, 12));
+
+        const playACardText = this.scene.add
+            .text(0, -height / 2 + calcPx(this.cameraWidth, 5), "出牌", {
+                fontSize: calcPx(this.cameraWidth, 26),
+                color: "#FFF",
+                fontFamily: "NotoSansSC",
+            })
+            .setOrigin(0.5, 0);
+
+        const NumberOfPlaysTextBg = this.scene.add
+            .rectangle(
+                0,
+                height / 2 -
+                    calcPx(this.cameraWidth, 10) -
+                    calcPx(this.cameraWidth, 64) / 2,
+                calcPx(this.cameraWidth, 116),
+                calcPx(this.cameraWidth, 64),
+                0x454f51,
+            )
+            .setRounded(calcPx(this.cameraWidth, 12));
+
+        const NumberOfPlaysText = this.scene.add
+            .text(
+                0,
+                height / 2 -
+                    calcPx(this.cameraWidth, 10) -
+                    calcPx(this.cameraWidth, 64) / 2,
+                "4",
+                {
+                    fontSize: calcPx(this.cameraWidth, 54),
+                    color: "#0E9EFC",
+                    fontFamily: "NotoSansSC",
+                },
+            )
+            .setOrigin(0.5);
+
+        container.add([
+            bg,
+            playACardText,
+            NumberOfPlaysTextBg,
+            NumberOfPlaysText,
+        ]);
+
+        return container;
+    }
+    /**
+     * 创建剩余弃牌次数容器
+     */
+    createNumberOfDiscards() {
+        const width = calcPx(this.cameraWidth, 140);
+        const height = calcPx(this.cameraWidth, 116);
+        const container = this.scene.add.container(
+            -this.BoardWidth / 2 + calcPx(this.cameraWidth, 348) + width / 2,
+            -this.BoardHeight / 2 + calcPx(this.cameraWidth, 768) + height / 2,
+        );
+
+        const bg = this.scene.add
+            .rectangle(0, 0, width, height, 0x343e40)
+            .setRounded(calcPx(this.cameraWidth, 12));
+
+        const foldText = this.scene.add
+            .text(0, -height / 2 + calcPx(this.cameraWidth, 5), "弃牌", {
+                fontSize: calcPx(this.cameraWidth, 26),
+                color: "#FFF",
+                fontFamily: "NotoSansSC",
+            })
+            .setOrigin(0.5, 0);
+
+        const NumberOfDiscardsTextBg = this.scene.add
+            .rectangle(
+                0,
+                height / 2 -
+                    calcPx(this.cameraWidth, 10) -
+                    calcPx(this.cameraWidth, 64) / 2,
+                calcPx(this.cameraWidth, 116),
+                calcPx(this.cameraWidth, 64),
+                0x454f51,
+            )
+            .setRounded(calcPx(this.cameraWidth, 12));
+
+        const NumberOfDiscardsText = this.scene.add
+            .text(
+                0,
+                height / 2 -
+                    calcPx(this.cameraWidth, 10) -
+                    calcPx(this.cameraWidth, 64) / 2,
+                "4",
+                {
+                    fontSize: calcPx(this.cameraWidth, 54),
+                    color: "#FC5F54",
+                    fontFamily: "NotoSansSC",
+                },
+            )
+            .setOrigin(0.5);
+
+        container.add([
+            bg,
+            foldText,
+            NumberOfDiscardsTextBg,
+            NumberOfDiscardsText,
+        ]);
+
+        return container;
+    }
+    /**
+     * 创建当前金额容器
+     */
+    createAmountOfMoneyContainer() {
+        const width = calcPx(this.cameraWidth, 293);
+        const height = calcPx(this.cameraWidth, 116);
+        const container = this.scene.add.container(
+            -this.BoardWidth / 2 + calcPx(this.cameraWidth, 196) + width / 2,
+            -this.BoardHeight / 2 + calcPx(this.cameraWidth, 901) + height / 2,
+        );
+
+        const bg = this.scene.add
+            .rectangle(0, 0, width, height, 0x343e40)
+            .setRounded(calcPx(this.cameraWidth, 12));
+
+        const amountOfMoneyTextBg = this.scene.add
+            .rectangle(
+                0,
+                0,
+                calcPx(this.cameraWidth, 260),
+                calcPx(this.cameraWidth, 96),
+                0x454f51,
+            )
+            .setRounded(calcPx(this.cameraWidth, 12));
+
+        const amountOfMoneyText = this.scene.add
+            .text(0, 0, "$4", {
+                fontSize: calcPx(this.cameraWidth, 64),
+                color: "#F3B959",
+                fontFamily: "NotoSansSC",
+            })
+            .setOrigin(0.5);
+
+        container.add([bg, amountOfMoneyTextBg, amountOfMoneyText]);
+
+        return container;
+    }
+    /**
+     * 创建当前底注容器
+     */
+    createNumberOfAnte() {
+        const width = calcPx(this.cameraWidth, 140);
+        const height = calcPx(this.cameraWidth, 116);
+        const container = this.scene.add.container(
+            -this.BoardWidth / 2 + calcPx(this.cameraWidth, 196) + width / 2,
+            -this.BoardHeight / 2 + calcPx(this.cameraWidth, 1030) + height / 2,
+        );
+
+        const bg = this.scene.add
+            .rectangle(0, 0, width, height, 0x343e40)
+            .setRounded(calcPx(this.cameraWidth, 12));
+
+        const anteText = this.scene.add
+            .text(0, -height / 2 + calcPx(this.cameraWidth, 5), "底注", {
+                fontSize: calcPx(this.cameraWidth, 26),
+                color: "#FFF",
+                fontFamily: "NotoSansSC",
+            })
+            .setOrigin(0.5, 0);
+
+        const NumberOfAnteTextBg = this.scene.add
+            .rectangle(
+                0,
+                height / 2 -
+                    calcPx(this.cameraWidth, 10) -
+                    calcPx(this.cameraWidth, 64) / 2,
+                calcPx(this.cameraWidth, 116),
+                calcPx(this.cameraWidth, 64),
+                0x454f51,
+            )
+            .setRounded(calcPx(this.cameraWidth, 12));
+
+        const NumberOfAnteText = this.scene.add
+            .text(
+                0,
+                height / 2 -
+                    calcPx(this.cameraWidth, 10) -
+                    calcPx(this.cameraWidth, 64) / 2,
+                "1/8",
+                {
+                    fontSize: calcPx(this.cameraWidth, 54),
+                    color: "#FD9A10",
+                    fontFamily: "NotoSansSC",
+                },
+            )
+            .setOrigin(0.5);
+
+        container.add([bg, anteText, NumberOfAnteTextBg, NumberOfAnteText]);
+
+        return container;
+    }
+    /**
+     * 创建当前回合容器
+     */
+    createNumberOfRound() {
+        const width = calcPx(this.cameraWidth, 140);
+        const height = calcPx(this.cameraWidth, 116);
+        const container = this.scene.add.container(
+            -this.BoardWidth / 2 + calcPx(this.cameraWidth, 348) + width / 2,
+            -this.BoardHeight / 2 + calcPx(this.cameraWidth, 1030) + height / 2,
+        );
+
+        const bg = this.scene.add
+            .rectangle(0, 0, width, height, 0x343e40)
+            .setRounded(calcPx(this.cameraWidth, 12));
+
+        const roundText = this.scene.add
+            .text(0, -height / 2 + calcPx(this.cameraWidth, 5), "回合", {
+                fontSize: calcPx(this.cameraWidth, 26),
+                color: "#FFF",
+                fontFamily: "NotoSansSC",
+            })
+            .setOrigin(0.5, 0);
+
+        const NumberOfRoundTextBg = this.scene.add
+            .rectangle(
+                0,
+                height / 2 -
+                    calcPx(this.cameraWidth, 10) -
+                    calcPx(this.cameraWidth, 64) / 2,
+                calcPx(this.cameraWidth, 116),
+                calcPx(this.cameraWidth, 64),
+                0x454f51,
+            )
+            .setRounded(calcPx(this.cameraWidth, 12));
+
+        const NumberOfRoundText = this.scene.add
+            .text(
+                0,
+                height / 2 -
+                    calcPx(this.cameraWidth, 10) -
+                    calcPx(this.cameraWidth, 64) / 2,
+                "0",
+                {
+                    fontSize: calcPx(this.cameraWidth, 54),
+                    color: "#FD9A10",
+                    fontFamily: "NotoSansSC",
+                },
+            )
+            .setOrigin(0.5);
+
+        container.add([bg, roundText, NumberOfRoundTextBg, NumberOfRoundText]);
 
         return container;
     }
