@@ -77,6 +77,12 @@ export class Game extends BaseScene {
         this.playCardsContainerHeight = calcPx(this.cameraWidth, 253);
 
         this.gameData = await preferences.getItem("gameData");
+        !this.gameData.currentNumberOfDiscards &&
+            (this.gameData.currentNumberOfDiscards =
+                this.gameData.numberOfDiscardsLimit);
+        !this.gameData.currentNumberOfPlays &&
+            (this.gameData.currentNumberOfPlays =
+                this.gameData.numberOfPlaysLimit);
 
         this.bgShader = new BalatroBackground(
             this,
@@ -140,7 +146,7 @@ export class Game extends BaseScene {
 
         this.leftBoard = new LeftBoard({
             scene: this,
-            stakeName: this.gameData.stake,
+            gameData: this.gameData,
         });
 
         this.leftBoard.addToScene();
@@ -240,6 +246,7 @@ export class Game extends BaseScene {
     async startNextRound() {
         this.createUiWithinRound();
         this.gameData.round++;
+        this.leftBoard.updataRoundText();
     }
 
     /**

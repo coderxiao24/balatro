@@ -3,21 +3,13 @@ import { GameObjects, Geom } from "phaser";
 import { BalatroSplash } from "@/game/entities/shaders/BalatroSplash";
 import { calcPx, calcScale } from "@/utils";
 import { PlayingCard } from "@/game/entities/PlayingCard";
-import {
-    DeckNames,
-    GameData,
-    IPlayingCard,
-    PlayingCardValues,
-    StakeNames,
-    Suits,
-} from "@/types";
+import { PlayingCardValues, Suits } from "@/types";
 import { BaseScene } from "./BaseScene";
 import { AudioManager } from "@/game/manager/AudioManager";
 import { PlayingCardClickModes } from "@/types";
 import { preferences } from "@/utils";
-import { cloneDeep } from "lodash";
 
-import { INITIAL_PLAYING_CARDS_ARRAY } from "@/config";
+import { initGameData } from "@/config";
 import { GameButton } from "../ui";
 
 export class MainMenu extends BaseScene {
@@ -95,17 +87,8 @@ export class MainMenu extends BaseScene {
             "开始游戏",
             calcPx(width, 70),
             async () => {
-                const data: GameData = {
-                    deck: DeckNames.RedDeck,
-                    stake: StakeNames.WhiteStake,
-                    ante: 1,
-                    round: 0,
-                    completeDeck: cloneDeep(
-                        INITIAL_PLAYING_CARDS_ARRAY,
-                    ) as IPlayingCard[],
-                    historyBlinds: [],
-                    handLimit: 8,
-                };
+                //@todo 后续根据不同牌组获取初始数据
+                const data = initGameData;
 
                 await preferences.setItem("gameData", data);
                 this.scene.start("Game");

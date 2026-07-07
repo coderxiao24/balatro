@@ -10,7 +10,12 @@ import {
     BlindNames,
     BlindDefinition,
     StakeDefinition,
+    GameData,
+    DeckNames,
+    IPlayingCard,
 } from "@/types";
+
+import { INITIAL_PLAYING_CARDS_ARRAY } from "./PlayingCardConfig";
 
 /** 场景背景音乐映射 */
 export const scenesBGMMap: Readonly<Record<sceneNames, () => void>> = {
@@ -1096,4 +1101,18 @@ export const stakeDataMap: Readonly<Record<StakeNames, StakeDefinition>> = {
         },
         stake_level: 8,
     },
+};
+
+/** 初始游戏数据 */
+export const initGameData: Readonly<GameData> = {
+    deck: DeckNames.RedDeck,
+    stake: StakeNames.WhiteStake,
+    ante: 1,
+    round: 0,
+    completeDeck: INITIAL_PLAYING_CARDS_ARRAY as IPlayingCard[],
+    historyBlinds: [],
+    handLimit: 8,
+    money: 4,
+    numberOfPlaysLimit: 4,
+    numberOfDiscardsLimit: 3,
 };

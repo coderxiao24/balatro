@@ -1,4 +1,4 @@
-import { StakeNames } from "@/types";
+import { GameData, StakeNames } from "@/types";
 import { calcPx, calcScale } from "@/utils";
 import { GameObjects } from "phaser";
 import { GameButton } from "@/game/ui";
@@ -11,13 +11,15 @@ export default class LeftBoard extends GameObjects.Container {
     BoardHeight: number;
     private cameraWidth: number;
     private cameraHeight: number;
-    stakeName: StakeNames;
+
+    gameData: GameData;
+    NumberOfRoundText: GameObjects.Text;
     constructor({
         scene,
-        stakeName,
+        gameData,
     }: {
         scene: Phaser.Scene;
-        stakeName: StakeNames;
+        gameData: GameData;
     }) {
         super(scene);
         this.scene = scene;
@@ -25,7 +27,7 @@ export default class LeftBoard extends GameObjects.Container {
         this.cameraHeight = scene.cameras.main.height;
         this.BoardWidth = calcPx(this.cameraWidth, 502);
         this.BoardHeight = this.cameraHeight;
-        this.stakeName = stakeName;
+        this.gameData = gameData;
     }
     addToScene() {
         this.container = this.scene.add.container(
@@ -143,8 +145,8 @@ export default class LeftBoard extends GameObjects.Container {
                 0,
                 0,
                 "chips",
-                stakeDataMap[this.stakeName].pos.x +
-                    5 * stakeDataMap[this.stakeName].pos.y,
+                stakeDataMap[this.gameData.stake].pos.x +
+                    5 * stakeDataMap[this.gameData.stake].pos.y,
             )
             .setOrigin(0, 0.5);
 
@@ -341,7 +343,7 @@ export default class LeftBoard extends GameObjects.Container {
                 height / 2 -
                     calcPx(this.cameraWidth, 10) -
                     calcPx(this.cameraWidth, 64) / 2,
-                "4",
+                this.gameData.currentNumberOfPlays?.toString() || "0",
                 {
                     fontSize: calcPx(this.cameraWidth, 54),
                     color: "#0E9EFC",
@@ -400,7 +402,7 @@ export default class LeftBoard extends GameObjects.Container {
                 height / 2 -
                     calcPx(this.cameraWidth, 10) -
                     calcPx(this.cameraWidth, 64) / 2,
-                "4",
+                this.gameData.currentNumberOfDiscards?.toString() || "0",
                 {
                     fontSize: calcPx(this.cameraWidth, 54),
                     color: "#FC5F54",
@@ -444,7 +446,7 @@ export default class LeftBoard extends GameObjects.Container {
             .setRounded(calcPx(this.cameraWidth, 12));
 
         const amountOfMoneyText = this.scene.add
-            .text(0, 0, "$4", {
+            .text(0, 0, `$${this.gameData.money}`, {
                 fontSize: calcPx(this.cameraWidth, 64),
                 color: "#F3B959",
                 fontFamily: "NotoSansSC",
@@ -496,7 +498,7 @@ export default class LeftBoard extends GameObjects.Container {
                 height / 2 -
                     calcPx(this.cameraWidth, 10) -
                     calcPx(this.cameraWidth, 64) / 2,
-                "1/8",
+                `${this.gameData.ante}/8`,
                 {
                     fontSize: calcPx(this.cameraWidth, 54),
                     color: "#FD9A10",
@@ -544,13 +546,13 @@ export default class LeftBoard extends GameObjects.Container {
             )
             .setRounded(calcPx(this.cameraWidth, 12));
 
-        const NumberOfRoundText = this.scene.add
+        this.NumberOfRoundText = this.scene.add
             .text(
                 0,
                 height / 2 -
                     calcPx(this.cameraWidth, 10) -
                     calcPx(this.cameraWidth, 64) / 2,
-                "0",
+                this.gameData.round.toString(),
                 {
                     fontSize: calcPx(this.cameraWidth, 54),
                     color: "#FD9A10",
@@ -559,8 +561,16 @@ export default class LeftBoard extends GameObjects.Container {
             )
             .setOrigin(0.5);
 
-        container.add([bg, roundText, NumberOfRoundTextBg, NumberOfRoundText]);
+        container.add([
+            bg,
+            roundText,
+            NumberOfRoundTextBg,
+            this.NumberOfRoundText,
+        ]);
 
         return container;
+    }
+    updataRoundText() {
+        this.NumberOfRoundText.setText(this.gameData.round.toString());
     }
 }

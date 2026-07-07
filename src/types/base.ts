@@ -242,6 +242,16 @@ export interface GameData {
     historyBlinds: HistoryBlind[];
     /** 手牌上限 */
     handLimit: number;
+    /** 金币 */
+    money: number;
+    /** 打出次数上限 */
+    numberOfPlaysLimit: number;
+    /** 弃牌次数上限 */
+    numberOfDiscardsLimit: number;
+    /** 当前剩余打出次数 */
+    currentNumberOfPlays?: number;
+    /** 当前剩余弃牌次数 */
+    currentNumberOfDiscards?: number;
 }
 
 /**
