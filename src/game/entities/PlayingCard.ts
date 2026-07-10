@@ -13,6 +13,7 @@ import {
     PLAYING_CARD_RANK_MAP,
     PLAYING_CARD_SUIT_ROW,
     PLAYING_CARD_VALUE_COL,
+    PlayingCardValuesToChips,
 } from "@/config";
 import { AudioManager } from "../manager/AudioManager";
 
@@ -30,6 +31,7 @@ export class PlayingCard {
     readonly rank: number;
     readonly frame: number;
     readonly name: string;
+    chips: number;
     /** 是否正面朝上（可读写，不会带动画，需配合 flip() 或直接更新后用 refreshFace() 同步） */
     faceUp: boolean;
     scale: number = 1;
@@ -117,6 +119,7 @@ export class PlayingCard {
             PLAYING_CARD_VALUE_COL[this.value];
         this.name = `${this.value} of ${this.suit}`;
         this.rank = PLAYING_CARD_RANK_MAP[this.value];
+        this.chips = PlayingCardValuesToChips[this.value];
         this.faceUp = faceUp;
     }
 
@@ -200,7 +203,7 @@ export class PlayingCard {
     }
 
     /** 切换选中/取消选中（带动画） */
-    toggleSelect(): void {
+    async toggleSelect(): Promise<void> {
         if (!this.scene || !this.container) return;
         if (this.scene.tweens.isTweening(this.container)) return;
         if (this.dragging) return;
@@ -218,17 +221,23 @@ export class PlayingCard {
             },
         );
 
-        this.scene.tweens.add({
-            targets: this.container,
-            y:
-                this.container.y +
-                (targetValue ? SELECT_OFFSET_Y : -SELECT_OFFSET_Y),
-            duration: 150,
-            ease: "Back.easeOut",
-            onComplete: () => {
-                this.selected = targetValue;
-                this.onSelectEnd?.(this, targetValue);
-            },
+        await new Promise<void>((resolve, reject) => {
+            if (!this.scene) return reject("Scene is null");
+            if (!this.container) return reject("Container is null");
+
+            this.scene.tweens.add({
+                targets: this.container,
+                y:
+                    this.container.y +
+                    (targetValue ? SELECT_OFFSET_Y : -SELECT_OFFSET_Y),
+                duration: 150,
+                ease: "Back.easeOut",
+                onComplete: () => {
+                    this.selected = targetValue;
+                    this.onSelectEnd?.(this, targetValue);
+                    resolve();
+                },
+            });
         });
     }
 
@@ -246,10 +255,10 @@ export class PlayingCard {
 
     private handleClick(): void {
         switch (this.clickMode) {
-            case "flip":
+            case PlayingCardClickModes.flip:
                 this.flip();
                 break;
-            case "select":
+            case PlayingCardClickModes.select:
                 this.toggleSelect();
                 break;
         }

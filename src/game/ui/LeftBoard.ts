@@ -14,6 +14,8 @@ export default class LeftBoard extends GameObjects.Container {
 
     gameData: GameData;
     NumberOfRoundText: GameObjects.Text;
+    chipsText: GameObjects.Text;
+    multText: GameObjects.Text;
     constructor({
         scene,
         gameData,
@@ -231,7 +233,7 @@ export default class LeftBoard extends GameObjects.Container {
             )
             .setRounded(calcPx(this.cameraWidth, 12));
 
-        const chipsText = this.scene.add
+        this.chipsText = this.scene.add
             .text(
                 calcPx(this.cameraWidth, 194) / 2 -
                     calcPx(this.cameraWidth, 10),
@@ -255,7 +257,7 @@ export default class LeftBoard extends GameObjects.Container {
             )
             .setRounded(calcPx(this.cameraWidth, 12));
 
-        const multText = this.scene.add
+        this.multText = this.scene.add
             .text(
                 -calcPx(this.cameraWidth, 194) / 2 +
                     calcPx(this.cameraWidth, 10),
@@ -276,7 +278,7 @@ export default class LeftBoard extends GameObjects.Container {
             calcPx(this.cameraWidth, 243) / 2 -
                 calcPx(this.cameraWidth, 100) / 2 -
                 calcPx(this.cameraWidth, 22),
-            [chipsBg, chipsText],
+            [chipsBg, this.chipsText],
         );
 
         const multContainer = this.scene.add.container(
@@ -286,7 +288,7 @@ export default class LeftBoard extends GameObjects.Container {
             calcPx(this.cameraWidth, 243) / 2 -
                 calcPx(this.cameraWidth, 100) / 2 -
                 calcPx(this.cameraWidth, 22),
-            [multBg, multText],
+            [multBg, this.multText],
         );
 
         const multImg = this.scene.add.image(
@@ -572,5 +574,17 @@ export default class LeftBoard extends GameObjects.Container {
     }
     updataRoundText() {
         this.NumberOfRoundText.setText(this.gameData.round.toString());
+    }
+    updataChipsText(
+        valueOrFn: number | string | ((value: string) => number | string),
+    ) {
+        if (typeof valueOrFn === "function") {
+            this.chipsText.setText(valueOrFn(this.chipsText.text).toString());
+        } else {
+            this.chipsText.setText(valueOrFn.toString());
+        }
+    }
+    updataMultText(value: number | string) {
+        this.multText.setText(value.toString());
     }
 }

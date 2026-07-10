@@ -34,7 +34,7 @@ export const PLAYING_CARD_ALL_SUITS: Readonly<Suits[]> = Object.values(Suits);
 export const PLAYING_CARD_ALL_VALUES: Readonly<PlayingCardValues[]> =
     Object.values(PlayingCardValues);
 /** 点数权重 */
-export const PLAYING_CARD_RANK_MAP: Record<string, number> = {
+export const PLAYING_CARD_RANK_MAP: Record<PlayingCardValues, number> = {
     [PlayingCardValues.Two]: 2,
     [PlayingCardValues.Three]: 3,
     [PlayingCardValues.Four]: 4,
@@ -328,3 +328,23 @@ export const INITIAL_PLAYING_CARDS_MAP: Readonly<Record<string, IPlayingCard>> =
 /** 以数组形式获取全部 52 张牌(初始牌堆) */
 export const INITIAL_PLAYING_CARDS_ARRAY: Readonly<IPlayingCard[]> =
     Object.values(INITIAL_PLAYING_CARDS_MAP);
+
+export const PlayingCardValuesToChips: Readonly<
+    Record<PlayingCardValues, number>
+> = {
+    [PlayingCardValues.Two]: 2,
+    [PlayingCardValues.Three]: 3,
+    [PlayingCardValues.Four]: 4,
+    [PlayingCardValues.Five]: 5,
+    [PlayingCardValues.Six]: 6,
+    [PlayingCardValues.Seven]: 7,
+    [PlayingCardValues.Eight]: 8,
+    [PlayingCardValues.Nine]: 9,
+    [PlayingCardValues.Ten]: 10,
+    [PlayingCardValues.Jack]: 10,
+    [PlayingCardValues.Queen]: 10,
+    [PlayingCardValues.King]: 10,
+    [PlayingCardValues.Ace]: 11,
+};
+
+// PlayingCardValues

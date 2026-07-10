@@ -1,4 +1,4 @@
-import { BlindsDataMap, stakeDataMap } from "@/config";
+import { BlindsDataMap, PLAYING_CARD_RANK_MAP, stakeDataMap } from "@/config";
 import { PlayingCard } from "@/game/entities/PlayingCard";
 import {
     BlindNames,
@@ -192,12 +192,19 @@ export function stringToHexNumber(hex: string) {
 
     return parseInt(cleanHex.substring(0, 6), 16);
 }
+export interface HandTypeResult {
+    handType: HandTypes;
+    isScoringIndexs: number[];
+}
+
 /**
  * 根据扑克牌数组判断牌型
  * @param playingCards 手牌数组
- * @returns 牌型
+ * @returns 牌型和计分卡牌索引
  */
-export function getHandTypeByPlayingCards(playingCards: PlayingCard[]) {
+export function getHandTypeByPlayingCards(
+    playingCards: PlayingCard[],
+): HandTypeResult {
     const playingCardValuesMap: Record<PlayingCardValues, number> = {
         [PlayingCardValues.Two]: 0,
         [PlayingCardValues.Three]: 0,
@@ -221,70 +228,144 @@ export function getHandTypeByPlayingCards(playingCards: PlayingCard[]) {
         [Suits.Spades]: 0,
     };
 
-    playingCards.forEach((card) => {
+    const valueToIndices: Record<PlayingCardValues, number[]> = {
+        [PlayingCardValues.Two]: [],
+        [PlayingCardValues.Three]: [],
+        [PlayingCardValues.Four]: [],
+        [PlayingCardValues.Five]: [],
+        [PlayingCardValues.Six]: [],
+        [PlayingCardValues.Seven]: [],
+        [PlayingCardValues.Eight]: [],
+        [PlayingCardValues.Nine]: [],
+        [PlayingCardValues.Ten]: [],
+        [PlayingCardValues.Jack]: [],
+        [PlayingCardValues.Queen]: [],
+        [PlayingCardValues.King]: [],
+        [PlayingCardValues.Ace]: [],
+    };
+
+    const suitToIndices: Record<Suits, number[]> = {
+        [Suits.Hearts]: [],
+        [Suits.Diamonds]: [],
+        [Suits.Clubs]: [],
+        [Suits.Spades]: [],
+    };
+
+    playingCards.forEach((card, index) => {
         playingCardValuesMap[card.value]++;
         playingCardSuitsMap[card.suit]++;
+        valueToIndices[card.value].push(index);
+        suitToIndices[card.suit].push(index);
     });
 
     const valueCounts = Object.values(playingCardValuesMap)
         .filter((value) => value > 0)
         .sort((a, b) => b - a);
 
-    /** 是否为顺子 */
     const isStraight = getIsStraight(playingCardValuesMap);
 
-    /** 是否为同花 */
     const isFlush = Object.values(playingCardSuitsMap).some(
         (count) => count >= 5,
     );
 
+    const allIndices = playingCards.map((_, i) => i);
+
     if (isFlush && valueCounts[0] === 5) {
-        return HandTypes.FlushFive;
+        return { handType: HandTypes.FlushFive, isScoringIndexs: allIndices };
     }
 
     if (isFlush && valueCounts[0] === 3 && valueCounts[1] === 2) {
-        return HandTypes.FlushHouse;
+        return { handType: HandTypes.FlushHouse, isScoringIndexs: allIndices };
     }
 
     if (valueCounts[0] === 5) {
-        return HandTypes.FiveOfAKind;
+        return { handType: HandTypes.FiveOfAKind, isScoringIndexs: allIndices };
     }
 
     if (isFlush && getIsRoyalStraight(playingCardValuesMap)) {
-        return HandTypes.RoyalFlush;
+        return { handType: HandTypes.RoyalFlush, isScoringIndexs: allIndices };
     }
 
     if (isFlush && isStraight) {
-        return HandTypes.StraightFlush;
+        return {
+            handType: HandTypes.StraightFlush,
+            isScoringIndexs: allIndices,
+        };
     }
 
     if (valueCounts[0] === 4) {
-        return HandTypes.FourOfAKind;
+        const fourValue = Object.keys(playingCardValuesMap).find(
+            (key) => playingCardValuesMap[key as PlayingCardValues] === 4,
+        ) as PlayingCardValues;
+        return {
+            handType: HandTypes.FourOfAKind,
+            isScoringIndexs: valueToIndices[fourValue],
+        };
     }
 
     if (valueCounts[0] === 3 && valueCounts[1] === 2) {
-        return HandTypes.FullHouse;
+        return {
+            handType: HandTypes.FullHouse,
+            isScoringIndexs: allIndices,
+        };
     }
 
     if (isFlush) {
-        return HandTypes.Flush;
+        return { handType: HandTypes.Flush, isScoringIndexs: allIndices };
     }
 
     if (isStraight) {
-        return HandTypes.Straight;
+        return { handType: HandTypes.Straight, isScoringIndexs: allIndices };
     }
 
     if (valueCounts[0] === 3) {
-        return HandTypes.ThreeOfAKind;
+        const threeValue = Object.keys(playingCardValuesMap).find(
+            (key) => playingCardValuesMap[key as PlayingCardValues] === 3,
+        ) as PlayingCardValues;
+        return {
+            handType: HandTypes.ThreeOfAKind,
+            isScoringIndexs: valueToIndices[threeValue],
+        };
     }
 
     if (valueCounts[0] === 2 && valueCounts[1] === 2) {
-        return HandTypes.TwoPair;
+        const firstPairValue = Object.keys(playingCardValuesMap).find(
+            (key) => playingCardValuesMap[key as PlayingCardValues] === 2,
+        ) as PlayingCardValues;
+        const secondPairValue = Object.keys(playingCardValuesMap).find(
+            (key) =>
+                key !== firstPairValue &&
+                playingCardValuesMap[key as PlayingCardValues] === 2,
+        ) as PlayingCardValues;
+        return {
+            handType: HandTypes.TwoPair,
+            isScoringIndexs: [
+                ...valueToIndices[firstPairValue],
+                ...valueToIndices[secondPairValue],
+            ].sort((a, b) => a - b),
+        };
     }
+
     if (valueCounts[0] === 2) {
-        return HandTypes.Pair;
+        const pairValue = Object.keys(playingCardValuesMap).find(
+            (key) => playingCardValuesMap[key as PlayingCardValues] === 2,
+        ) as PlayingCardValues;
+        return {
+            handType: HandTypes.Pair,
+            isScoringIndexs: valueToIndices[pairValue],
+        };
     }
-    return HandTypes.HighCard;
+
+    const highValue = (Object.keys(playingCardValuesMap) as PlayingCardValues[])
+        .filter((key) => playingCardValuesMap[key as PlayingCardValues] > 0)
+        .sort((a, b) => PLAYING_CARD_RANK_MAP[b] - PLAYING_CARD_RANK_MAP[a])[0];
+    const highCardIndex = playingCards.findIndex(
+        (card) => card.value === highValue,
+    );
+    return {
+        handType: HandTypes.HighCard,
+        isScoringIndexs: highCardIndex >= 0 ? [highCardIndex] : [],
+    };
 }
 
 /**
@@ -329,3 +410,6 @@ function getIsRoyalStraight(
         playingCardValuesMap[PlayingCardValues.Ace] > 0
     );
 }
+
+export const delay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));

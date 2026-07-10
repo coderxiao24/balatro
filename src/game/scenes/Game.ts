@@ -1,6 +1,7 @@
 import {
     calcPx,
     calcScale,
+    delay,
     getHandTypeByPlayingCards,
     preferences,
 } from "@/utils";
@@ -19,7 +20,12 @@ import { PlayingCard } from "../entities/PlayingCard";
 import { Actions, Display, GameObjects, Math } from "phaser";
 import { BalatroBackground } from "@/game/entities/shaders/BalatroBackground";
 import { AudioManager } from "../manager/AudioManager";
-import { BlindsDataMap, SUIT_RANK_MAP } from "@/config";
+import {
+    BlindsDataMap,
+    HandsDataMap,
+    PlayingCardValuesToChips,
+    SUIT_RANK_MAP,
+} from "@/config";
 import { GameButton } from "../ui";
 import LeftBoard from "../ui/LeftBoard";
 
@@ -425,12 +431,10 @@ export class Game extends BaseScene {
                     );
                 }
 
-                // todo 开始计分
-                console.log(
-                    "牌型",
-                    getHandTypeByPlayingCards(selectedPlayingCards),
-                );
-                await new Promise((resolve) => setTimeout(resolve, 1000));
+                await this.scoring();
+
+                this.leftBoard.updataChipsText(0);
+                this.leftBoard.updataMultText(0);
                 // 计分完成
 
                 // 已打出的牌离场
@@ -545,6 +549,41 @@ export class Game extends BaseScene {
             true,
         );
         // 弃牌按钮结束
+    }
+    /**
+     * 计分
+     */
+    async scoring() {
+        const { handType, isScoringIndexs } = getHandTypeByPlayingCards(
+            this.playedPlayingCards,
+        );
+        const currentHandData = HandsDataMap[handType];
+
+        this.leftBoard.updataChipsText(currentHandData.s_chips);
+        this.leftBoard.updataMultText(currentHandData.s_mult);
+
+        for (const index of isScoringIndexs) {
+            const card = this.playedPlayingCards[index];
+            await card.toggleSelect();
+        }
+
+        for (const index of isScoringIndexs) {
+            const card = this.playedPlayingCards[index];
+            await card.toggleSelect();
+            this.leftBoard.updataChipsText(
+                (value) => Number(value) + card.chips,
+            );
+            await delay(100);
+        }
+        console.log(
+            666,
+            handType,
+            isScoringIndexs,
+            currentHandData,
+            this.leftBoard.chipsText.text,
+            this.leftBoard.multText.text,
+        );
+        await delay(1000);
     }
 
     /**
