@@ -192,19 +192,16 @@ export function stringToHexNumber(hex: string) {
 
     return parseInt(cleanHex.substring(0, 6), 16);
 }
-export interface HandTypeResult {
-    handType: HandTypes;
-    isScoringIndexs: number[];
-}
 
 /**
  * 根据扑克牌数组判断牌型
  * @param playingCards 手牌数组
  * @returns 牌型和计分卡牌索引
  */
-export function getHandTypeByPlayingCards(
-    playingCards: PlayingCard[],
-): HandTypeResult {
+export function getHandTypeByPlayingCards(playingCards: PlayingCard[]): {
+    handType: HandTypes;
+    isScoringIndexs: number[];
+} {
     const playingCardValuesMap: Record<PlayingCardValues, number> = {
         [PlayingCardValues.Two]: 0,
         [PlayingCardValues.Three]: 0,

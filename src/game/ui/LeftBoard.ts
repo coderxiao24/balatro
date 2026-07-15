@@ -16,6 +16,8 @@ export default class LeftBoard extends GameObjects.Container {
     NumberOfRoundText: GameObjects.Text;
     chipsText: GameObjects.Text;
     multText: GameObjects.Text;
+    roundTotalScoreText: GameObjects.Text;
+    roundScoreValueContainer: GameObjects.Container;
     constructor({
         scene,
         gameData,
@@ -157,7 +159,7 @@ export default class LeftBoard extends GameObjects.Container {
                 (58 / 54),
         );
 
-        const scoreText = this.scene.add
+        this.roundTotalScoreText = this.scene.add
             .text(
                 stakeChipIcon.displayWidth + calcPx(this.cameraWidth, 14),
                 0,
@@ -170,14 +172,14 @@ export default class LeftBoard extends GameObjects.Container {
             )
             .setOrigin(0, 0.5);
 
-        const currentScoreContainer = this.scene.add.container(0, 0, [
+        this.roundScoreValueContainer = this.scene.add.container(0, 0, [
             stakeChipIcon,
-            scoreText,
+            this.roundTotalScoreText,
         ]);
 
-        const bounds = currentScoreContainer.getBounds();
+        const bounds = this.roundScoreValueContainer.getBounds();
 
-        currentScoreContainer.x = 0 - bounds.width / 2;
+        this.roundScoreValueContainer.x = 0 - bounds.width / 2;
 
         const childContainer = this.scene.add.container(
             calcPx(this.cameraWidth, 476) / 2 -
@@ -194,7 +196,7 @@ export default class LeftBoard extends GameObjects.Container {
                         0x454f51,
                     )
                     .setRounded(calcPx(this.cameraWidth, 12)),
-                currentScoreContainer,
+                this.roundScoreValueContainer,
             ],
         );
 
@@ -572,10 +574,10 @@ export default class LeftBoard extends GameObjects.Container {
 
         return container;
     }
-    updataRoundText() {
+    updateRoundText() {
         this.NumberOfRoundText.setText(this.gameData.round.toString());
     }
-    updataChipsText(
+    updateChipsText(
         valueOrFn: number | string | ((value: string) => number | string),
     ) {
         if (typeof valueOrFn === "function") {
@@ -584,7 +586,26 @@ export default class LeftBoard extends GameObjects.Container {
             this.chipsText.setText(valueOrFn.toString());
         }
     }
-    updataMultText(value: number | string) {
-        this.multText.setText(value.toString());
+    updateMultText(
+        valueOrFn: number | string | ((value: string) => number | string),
+    ) {
+        if (typeof valueOrFn === "function") {
+            this.multText.setText(valueOrFn(this.multText.text).toString());
+        } else {
+            this.multText.setText(valueOrFn.toString());
+        }
+    }
+    updateRoundTotalScoreText(
+        valueOrFn: number | string | ((value: string) => number | string),
+    ) {
+        if (typeof valueOrFn === "function") {
+            this.roundTotalScoreText.setText(
+                valueOrFn(this.roundTotalScoreText.text).toString(),
+            );
+        } else {
+            this.roundTotalScoreText.setText(valueOrFn.toString());
+        }
+        const bounds = this.roundScoreValueContainer.getBounds();
+        this.roundScoreValueContainer.x = 0 - bounds.width / 2;
     }
 }

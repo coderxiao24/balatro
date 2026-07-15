@@ -6,6 +6,7 @@ import {
     AddToSceneOptions,
     DragCallbacksOptions,
     SelectCallbacksOptions,
+    sceneNames,
 } from "@/types";
 import {
     PLAYING_CARD_ALL_SUITS,
@@ -16,6 +17,7 @@ import {
     PlayingCardValuesToChips,
 } from "@/config";
 import { AudioManager } from "../manager/AudioManager";
+import { calcPx } from "@/utils";
 
 /** 选中时向上位移的像素值 */
 const SELECT_OFFSET_Y = -30;
@@ -198,8 +200,10 @@ export class PlayingCard {
     }
 
     setScale(value: number): void {
+        if (!this.base || !this.container) return;
         this.scale = value;
         this.container?.setScale(value);
+        this.container.setSize(this.base.displayWidth, this.base.displayHeight);
     }
 
     /** 切换选中/取消选中（带动画） */
@@ -625,18 +629,27 @@ export class PlayingCard {
     }
 
     /** 添加拿起卡片时的抖动效果 */
-    private addPickupShake(): void {
+    private async addPickupShake(): Promise<void> {
         if (!this.container || !this.scene) return;
 
         // 生成随机抖动序列，每次抖动幅度略有不同
         const shakeRotation = this.generateRandomShake(5, 4);
 
-        this.scene.tweens.add({
-            targets: this.container,
-            scale: this.scale * this.pickupMagnification,
-            rotation: shakeRotation,
-            duration: 120 + Math.random() * 60, // 随机持续时间 120-180ms
-            ease: "Back.easeOut",
+        await new Promise<void>((resolve, reject) => {
+            if (!this.scene) {
+                reject("场景不存在");
+                return;
+            }
+            this.scene.tweens.add({
+                targets: this.container,
+                scale: this.scale * this.pickupMagnification,
+                rotation: shakeRotation,
+                duration: 120 + Math.random() * 60, // 随机持续时间 120-180ms
+                ease: "Back.easeOut",
+                onComplete: () => {
+                    resolve();
+                },
+            });
         });
     }
 
@@ -663,5 +676,78 @@ export class PlayingCard {
                 },
             });
         });
+    }
+
+    /**
+     * 添加简单的弹跳效果：瞬间缩小后弹回原始大小
+     * @param amount 弹跳幅度，默认 0.4
+     * @param rotAmt 旋转幅度，如果不传则随机向左或向右倾斜
+     */
+    private async juiceUp(amount: number = 0.4): Promise<void> {
+        if (!this.container || !this.scene) return;
+
+        // 生成随机抖动序列，每次抖动幅度略有不同
+        const shakeRotation = this.generateRandomShake(5, 4);
+
+        // 2. 瞬间缩小蓄力
+        const initialScale = this.scale * (1 - 0.6 * amount);
+        this.container.setScale(initialScale);
+
+        // 3. 弹跳恢复
+        await new Promise<void>((resolve, reject) => {
+            if (!this.scene) {
+                reject("场景不存在");
+                return;
+            }
+
+            this.scene.tweens.add({
+                targets: this.container,
+                // 目标缩放直接回到 this.scale
+                scale: this.scale,
+                // 目标旋转回正
+                rotation: shakeRotation,
+                duration: 120 + Math.random() * 60, // 0.4秒
+                ease: "Back.easeOut",
+                onComplete: () => {
+                    resolve();
+                },
+            });
+        });
+    }
+
+    /** 开始计分动画效果 */
+    async startScoring(sceneKey: sceneNames): Promise<void> {
+        if (!this.container || !this.scene) return;
+        AudioManager.getInstance().playSound(sceneKey, "chips1", {
+            rate: 0.88,
+        });
+
+        // 在container上方添加计分文本，逐渐向上移动并消失
+        const fontSize = calcPx(this.scene.cameras.main.width, 64) / this.scale;
+        const scoreText = this.scene.add.text(
+            0,
+            -this.base!.displayHeight / 2 - fontSize / 2,
+            `+${this.chips}`,
+            { fontSize, color: "#fff", fontFamily: "NotoSansSC" },
+        );
+        scoreText.setOrigin(0.5);
+        this.container.add(scoreText);
+
+        const p1 = this.juiceUp(0.6);
+        const p2 = new Promise<void>((resolve) => {
+            this.scene!.tweens.add({
+                targets: scoreText,
+                y: scoreText.y - fontSize,
+                alpha: 0,
+                duration: 800,
+                ease: "Cubic.easeOut",
+                onComplete: () => {
+                    scoreText.destroy();
+                    resolve();
+                },
+            });
+        });
+
+        await Promise.all([p1, p2]);
     }
 }

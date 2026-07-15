@@ -12,6 +12,7 @@ import {
     BlindNames,
     IPlayingCard,
     PlayingCardClickModes,
+    sceneNames,
 } from "@/types";
 import { GameData } from "@/types";
 import Random from "@xiaokaixuan/random";
@@ -28,6 +29,7 @@ import {
 } from "@/config";
 import { GameButton } from "../ui";
 import LeftBoard from "../ui/LeftBoard";
+import BigNumber from "bignumber.js";
 
 export class Game extends BaseScene {
     sortType: "point" | "suit" = "point";
@@ -252,7 +254,7 @@ export class Game extends BaseScene {
     async startNextRound() {
         this.createUiWithinRound();
         this.gameData.round++;
-        this.leftBoard.updataRoundText();
+        this.leftBoard.updateRoundText();
     }
 
     /**
@@ -433,8 +435,16 @@ export class Game extends BaseScene {
 
                 await this.scoring();
 
-                this.leftBoard.updataChipsText(0);
-                this.leftBoard.updataMultText(0);
+                const totalScore = new BigNumber(
+                    this.leftBoard.chipsText.text,
+                ).times(new BigNumber(this.leftBoard.multText.text));
+
+                this.leftBoard.updateRoundTotalScoreText((value: string) =>
+                    new BigNumber(value).plus(totalScore).toString(),
+                );
+
+                this.leftBoard.updateChipsText(0);
+                this.leftBoard.updateMultText(0);
                 // 计分完成
 
                 // 已打出的牌离场
@@ -559,30 +569,30 @@ export class Game extends BaseScene {
         );
         const currentHandData = HandsDataMap[handType];
 
-        this.leftBoard.updataChipsText(currentHandData.s_chips);
-        this.leftBoard.updataMultText(currentHandData.s_mult);
-
-        for (const index of isScoringIndexs) {
-            const card = this.playedPlayingCards[index];
-            await card.toggleSelect();
-        }
-
-        for (const index of isScoringIndexs) {
-            const card = this.playedPlayingCards[index];
-            await card.toggleSelect();
-            this.leftBoard.updataChipsText(
-                (value) => Number(value) + card.chips,
-            );
-            await delay(100);
-        }
-        console.log(
-            666,
-            handType,
-            isScoringIndexs,
-            currentHandData,
-            this.leftBoard.chipsText.text,
-            this.leftBoard.multText.text,
+        this.leftBoard.updateChipsText(
+            new BigNumber(currentHandData.s_chips).toString(),
         );
+        this.leftBoard.updateMultText(
+            new BigNumber(currentHandData.s_mult).toString(),
+        );
+
+        /** 选中计分牌 */
+        for (const index of isScoringIndexs) {
+            const card = this.playedPlayingCards[index];
+            await card.toggleSelect();
+            await delay(50);
+        }
+
+        /** 逐个计分 */
+        for (const index of isScoringIndexs) {
+            const card = this.playedPlayingCards[index];
+            await card.startScoring(this.scene.key as sceneNames);
+            this.leftBoard.updateChipsText((value: string) =>
+                new BigNumber(value).plus(new BigNumber(card.chips)).toString(),
+            );
+            await delay(50);
+        }
+
         await delay(1000);
     }
 

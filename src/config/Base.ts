@@ -57,6 +57,7 @@ export const blindCardsBtnTextMap: Readonly<Record<BlindCardTypes, string>> = {
 /** 牌型数据 */
 export const HandsDataMap: Readonly<Record<HandTypes, HandDataValue>> = {
     [HandTypes.FlushFive]: {
+        handType: "同花五条",
         desc: "5张相同点数和相同花色的牌",
         visible: false,
         order: 1,
@@ -103,6 +104,7 @@ export const HandsDataMap: Readonly<Record<HandTypes, HandDataValue>> = {
         ],
     },
     [HandTypes.FlushHouse]: {
+        handType: "同花葫芦",
         desc: "三条及对子，且花色相同",
         visible: false,
         order: 2,
@@ -149,6 +151,7 @@ export const HandsDataMap: Readonly<Record<HandTypes, HandDataValue>> = {
         ],
     },
     [HandTypes.FiveOfAKind]: {
+        handType: "五条",
         desc: "5张相同点数的牌",
         visible: false,
         order: 3,
@@ -195,6 +198,7 @@ export const HandsDataMap: Readonly<Record<HandTypes, HandDataValue>> = {
         ],
     },
     [HandTypes.RoyalFlush]: {
+        handType: "皇家同花顺",
         desc: "连续5张牌（点数连续），且花色相同",
         visible: true,
         order: 4,
@@ -241,6 +245,7 @@ export const HandsDataMap: Readonly<Record<HandTypes, HandDataValue>> = {
         ],
     },
     [HandTypes.StraightFlush]: {
+        handType: "同花顺",
         desc: "连续5张牌（点数连续），且花色相同",
         visible: true,
         order: 4,
@@ -287,6 +292,7 @@ export const HandsDataMap: Readonly<Record<HandTypes, HandDataValue>> = {
         ],
     },
     [HandTypes.FourOfAKind]: {
+        handType: "四条",
         desc: "4张相同点数的牌，可以与另外一张不计分的牌一同打出",
         visible: true,
         order: 5,
@@ -333,6 +339,7 @@ export const HandsDataMap: Readonly<Record<HandTypes, HandDataValue>> = {
         ],
     },
     [HandTypes.FullHouse]: {
+        handType: "葫芦",
         desc: "三条及对子",
         visible: true,
         order: 6,
@@ -379,6 +386,7 @@ export const HandsDataMap: Readonly<Record<HandTypes, HandDataValue>> = {
         ],
     },
     [HandTypes.Flush]: {
+        handType: "同花",
         desc: "5张牌花色相同",
         visible: true,
         order: 7,
@@ -425,6 +433,7 @@ export const HandsDataMap: Readonly<Record<HandTypes, HandDataValue>> = {
         ],
     },
     [HandTypes.Straight]: {
+        handType: "顺子",
         desc: "连续5张牌（点数连续）",
         visible: true,
         order: 8,
@@ -471,6 +480,7 @@ export const HandsDataMap: Readonly<Record<HandTypes, HandDataValue>> = {
         ],
     },
     [HandTypes.ThreeOfAKind]: {
+        handType: "三条",
         desc: "3张点数相同的牌，可以与另外最多2张不计分的牌一同打出",
         visible: true,
         order: 9,
@@ -518,6 +528,7 @@ export const HandsDataMap: Readonly<Record<HandTypes, HandDataValue>> = {
         ],
     },
     [HandTypes.TwoPair]: {
+        handType: "两对",
         desc: "两对不同点数的牌，可以与另外一张不计分的牌一同打出",
         visible: true,
         order: 10,
@@ -564,6 +575,7 @@ export const HandsDataMap: Readonly<Record<HandTypes, HandDataValue>> = {
         ],
     },
     [HandTypes.Pair]: {
+        handType: "对子",
         desc: "两张点数相同的牌，可以与另外最多3张不计分的牌一同打出",
         visible: true,
         order: 11,
@@ -610,6 +622,7 @@ export const HandsDataMap: Readonly<Record<HandTypes, HandDataValue>> = {
         ],
     },
     [HandTypes.HighCard]: {
+        handType: "高牌",
         desc: "如果打出的牌不是以上任何一种那么只有点数最高的牌会计分",
         visible: true,
         order: 12,

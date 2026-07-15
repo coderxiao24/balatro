@@ -316,6 +316,8 @@ export enum HandTypes {
  * 牌型数据接口
  */
 export interface HandDataValue {
+    /** 牌型中文名称 */
+    handType: string;
     /** 描述 */
     desc: string;
     /** 是否可见 */
