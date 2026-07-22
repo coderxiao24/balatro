@@ -206,17 +206,22 @@ export class PlayingCard {
         this.container.setSize(this.base.displayWidth, this.base.displayHeight);
     }
 
-    /** 切换选中/取消选中（带动画） */
-    async toggleSelect(): Promise<void> {
+    /** 切换选中/取消选中（带动画）
+     *
+     * @param isTriggerCallback 是否触发 onSelectStart/End 回调
+     */
+    async toggleSelect(isTriggerCallback = true): Promise<void> {
         if (!this.scene || !this.container) return;
         if (this.scene.tweens.isTweening(this.container)) return;
         if (this.dragging) return;
 
         const targetValue = !this.selected;
 
-        if (!this.canSelect?.(this, targetValue)) return;
+        if (isTriggerCallback) {
+            if (!this.canSelect?.(this, targetValue)) return;
+            this.onSelectStart?.(this, targetValue);
+        }
 
-        this.onSelectStart?.(this, targetValue);
         AudioManager.getInstance().playSound(
             this.scene.scene.key,
             targetValue ? "cardSlide1" : "cardSlide2",
@@ -238,7 +243,9 @@ export class PlayingCard {
                 ease: "Back.easeOut",
                 onComplete: () => {
                     this.selected = targetValue;
-                    this.onSelectEnd?.(this, targetValue);
+                    if (isTriggerCallback) {
+                        this.onSelectEnd?.(this, targetValue);
+                    }
                     resolve();
                 },
             });

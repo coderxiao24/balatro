@@ -439,9 +439,19 @@ export class Game extends BaseScene {
                     this.leftBoard.chipsText.text,
                 ).times(new BigNumber(this.leftBoard.multText.text));
 
+                this.leftBoard.updateHandTypeContainer(false);
+
+                this.leftBoard.updateCurrentTotalScoreText(
+                    true,
+                    totalScore.toString(),
+                );
+
+                await delay(100);
+
                 this.leftBoard.updateRoundTotalScoreText((value: string) =>
                     new BigNumber(value).plus(totalScore).toString(),
                 );
+                this.leftBoard.updateCurrentTotalScoreText(false);
 
                 this.leftBoard.updateChipsText(0);
                 this.leftBoard.updateMultText(0);
@@ -569,6 +579,11 @@ export class Game extends BaseScene {
         );
         const currentHandData = HandsDataMap[handType];
 
+        this.leftBoard.updateHandTypeContainer(
+            true,
+            currentHandData.handType,
+            currentHandData.level.toString(),
+        );
         this.leftBoard.updateChipsText(
             new BigNumber(currentHandData.s_chips).toString(),
         );
@@ -579,7 +594,7 @@ export class Game extends BaseScene {
         /** 选中计分牌 */
         for (const index of isScoringIndexs) {
             const card = this.playedPlayingCards[index];
-            await card.toggleSelect();
+            await card.toggleSelect(false);
             await delay(50);
         }
 
@@ -593,6 +608,12 @@ export class Game extends BaseScene {
             await delay(50);
         }
 
+        /** 取消选中计分牌 */
+        for (const index of isScoringIndexs) {
+            const card = this.playedPlayingCards[index];
+            await card.toggleSelect(false);
+            await delay(50);
+        }
         await delay(1000);
     }
 
@@ -873,6 +894,24 @@ export class Game extends BaseScene {
                 },
                 onSelectEnd: () => {
                     this.updatePlayAndDiscardButtonDisabled();
+                    const selectedCards = this.handPlayingCards.filter(
+                        (item) => item.isSelected,
+                    );
+                    const { handType } =
+                        getHandTypeByPlayingCards(selectedCards);
+                    const currentHandData = HandsDataMap[handType];
+
+                    this.leftBoard.updateHandTypeContainer(
+                        true,
+                        currentHandData.handType,
+                        currentHandData.level.toString(),
+                    );
+                    this.leftBoard.updateChipsText(
+                        new BigNumber(currentHandData.s_chips).toString(),
+                    );
+                    this.leftBoard.updateMultText(
+                        new BigNumber(currentHandData.s_mult).toString(),
+                    );
                 },
             });
             itemPlayingCard.setDragCallbacks({

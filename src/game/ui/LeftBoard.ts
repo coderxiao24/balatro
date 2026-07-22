@@ -1,6 +1,6 @@
 import { GameData, StakeNames } from "@/types";
 import { calcPx, calcScale } from "@/utils";
-import { GameObjects } from "phaser";
+import { Actions, Display, GameObjects } from "phaser";
 import { GameButton } from "@/game/ui";
 import { stakeDataMap } from "@/config";
 
@@ -13,11 +13,25 @@ export default class LeftBoard extends GameObjects.Container {
     private cameraHeight: number;
 
     gameData: GameData;
+    /** 当前回合数 */
     NumberOfRoundText: GameObjects.Text;
+    /** 本次出牌筹码 */
     chipsText: GameObjects.Text;
+    /** 本次出牌倍数 */
     multText: GameObjects.Text;
+    /** 本次出牌的牌型以及等级的容器 */
+    handTypeContainer: GameObjects.Container;
+    /** 本次出牌的牌型文本 */
+    handTypeText: GameObjects.Text;
+    /** 本次出牌的牌型的等级文本 */
+    handTypeLevelText: GameObjects.Text;
+    /** 本次出牌的总分数文本 */
+    currentTotalScoreText: GameObjects.Text;
+    /** 当前回合总分数 */
     roundTotalScoreText: GameObjects.Text;
+    /** 当前回合总分数的容器 */
     roundScoreValueContainer: GameObjects.Container;
+
     constructor({
         scene,
         gameData,
@@ -225,6 +239,45 @@ export default class LeftBoard extends GameObjects.Container {
             )
             .setRounded(calcPx(this.cameraWidth, 12));
 
+        this.handTypeContainer = this.scene.add.container(
+            0,
+            -calcPx(this.cameraWidth, 243) / 2 + calcPx(this.cameraWidth, 24),
+        );
+
+        this.handTypeText = this.scene.add.text(0, 0, "高牌", {
+            fontSize: calcPx(this.cameraWidth, 56),
+            color: "#FFF",
+            fontFamily: "NotoSansSC",
+        });
+
+        this.handTypeLevelText = this.scene.add.text(0, 0, "等级1", {
+            fontSize: calcPx(this.cameraWidth, 32),
+            color: "#EFEFEF",
+            fontFamily: "NotoSansSC",
+        });
+        this.handTypeContainer.add([this.handTypeText, this.handTypeLevelText]);
+        Actions.AlignTo(
+            [this.handTypeText, this.handTypeLevelText],
+            Display.Align.RIGHT_CENTER,
+            calcPx(this.cameraWidth, 20),
+        );
+        this.handTypeContainer.setVisible(false);
+
+        this.currentTotalScoreText = this.scene.add
+            .text(
+                0,
+                -calcPx(this.cameraWidth, 243) / 2 +
+                    calcPx(this.cameraWidth, 30),
+                "0",
+                {
+                    fontSize: calcPx(this.cameraWidth, 64),
+                    color: "#FFF",
+                    fontFamily: "NotoSansSC",
+                },
+            )
+            .setOrigin(0.5, 0)
+            .setVisible(false);
+
         const chipsBg = this.scene.add
             .rectangle(
                 0,
@@ -302,7 +355,14 @@ export default class LeftBoard extends GameObjects.Container {
         );
         multImg.setScale(calcScale(this.cameraWidth, multImg.displayWidth, 36));
 
-        container.add([bg, chipsContainer, multContainer, multImg]);
+        container.add([
+            bg,
+            this.handTypeContainer,
+            this.currentTotalScoreText,
+            chipsContainer,
+            multContainer,
+            multImg,
+        ]);
 
         return container;
     }
@@ -607,5 +667,29 @@ export default class LeftBoard extends GameObjects.Container {
         }
         const bounds = this.roundScoreValueContainer.getBounds();
         this.roundScoreValueContainer.x = 0 - bounds.width / 2;
+    }
+
+    updateHandTypeContainer(
+        visible: boolean,
+        handType: string = "",
+        level: string = "",
+    ) {
+        this.handTypeText.setText(handType);
+
+        this.handTypeLevelText.setText(`等级${level}`);
+
+        Actions.AlignTo(
+            [this.handTypeText, this.handTypeLevelText],
+            Display.Align.RIGHT_CENTER,
+            calcPx(this.cameraWidth, 20),
+        );
+        const bounds = this.handTypeContainer.getBounds();
+
+        this.handTypeContainer.x = 0 - bounds.width / 2;
+        this.handTypeContainer.setVisible(visible);
+    }
+    updateCurrentTotalScoreText(visible: boolean, value: string = "") {
+        this.currentTotalScoreText.setText(value);
+        this.currentTotalScoreText.setVisible(visible);
     }
 }
