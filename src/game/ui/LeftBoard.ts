@@ -655,20 +655,60 @@ export default class LeftBoard extends GameObjects.Container {
             this.multText.setText(valueOrFn.toString());
         }
     }
+    /**
+     * 当前显示的得分(过渡中的值)
+     */
+    private currentDisplayScore: number = 0;
+    /**
+     * 更新当前回合总得分时候正在运行的 Tween
+     */
+    private activeScoreTween: Phaser.Tweens.Tween | null = null; // 记录当前正在运行的 Tween
+
+    /**
+     * 更新当前回合总得分
+     */
     updateRoundTotalScoreText(
         valueOrFn: number | string | ((value: string) => number | string),
+        duration: number = 500,
     ) {
+        //  计算目标数值
+        let targetValue: number;
         if (typeof valueOrFn === "function") {
-            this.roundTotalScoreText.setText(
-                valueOrFn(this.roundTotalScoreText.text).toString(),
-            );
+            targetValue = Number(valueOrFn(this.roundTotalScoreText.text));
         } else {
-            this.roundTotalScoreText.setText(valueOrFn.toString());
+            targetValue = Number(valueOrFn);
         }
-        const bounds = this.roundScoreValueContainer.getBounds();
-        this.roundScoreValueContainer.x = 0 - bounds.width / 2;
+
+        if (this.activeScoreTween && this.activeScoreTween.isPlaying()) {
+            this.activeScoreTween.stop();
+        }
+
+        this.currentDisplayScore = Number(this.roundTotalScoreText.text) || 0;
+
+        this.activeScoreTween = this.scene.tweens.add({
+            targets: this,
+            currentDisplayScore: targetValue,
+            duration: duration,
+            ease: "Sine.easeOut",
+            onUpdate: () => {
+                // 5. 每一帧更新文本内容
+                this.roundTotalScoreText.setText(
+                    Math.round(this.currentDisplayScore).toString(),
+                );
+
+                // 6. 每一帧重新计算边界并居中
+                const bounds = this.roundScoreValueContainer.getBounds();
+                this.roundScoreValueContainer.x = 0 - bounds.width / 2;
+            },
+            onComplete: () => {
+                this.activeScoreTween = null;
+            },
+        });
     }
 
+    /**
+     * 更新手型类型容器(当前出牌的牌型和等级)
+     */
     updateHandTypeContainer(
         visible: boolean,
         handType: string = "",
@@ -688,8 +728,52 @@ export default class LeftBoard extends GameObjects.Container {
         this.handTypeContainer.x = 0 - bounds.width / 2;
         this.handTypeContainer.setVisible(visible);
     }
-    updateCurrentTotalScoreText(visible: boolean, value: string = "") {
-        this.currentTotalScoreText.setText(value);
-        this.currentTotalScoreText.setVisible(visible);
+
+    /**
+     * 当前显示的得分(过渡中的值)
+     */
+    private currentDisplayScore1: number = 0;
+    /**
+     * 更新当前回合总得分时候正在运行的 Tween
+     */
+    private activeScoreTween1: Phaser.Tweens.Tween | null = null; // 记录当前正在运行的 Tween
+    /**
+     * 更新本次出牌的总分数文本
+     */
+    updateCurrentTotalScoreText(
+        visible: boolean,
+        value: string = "",
+        duration: number = 500,
+    ) {
+        if (this.activeScoreTween1 && this.activeScoreTween1.isPlaying()) {
+            this.activeScoreTween1.stop();
+        }
+
+        this.currentDisplayScore1 =
+            Number(this.currentTotalScoreText.text) || 0;
+
+        this.activeScoreTween1 = this.scene.tweens.add({
+            targets: this,
+            currentDisplayScore1: Number(value),
+            duration: duration,
+            ease: "Sine.easeOut",
+            onStart: () => {
+                if (visible) {
+                    this.currentTotalScoreText.setVisible(visible);
+                }
+            },
+            onUpdate: () => {
+                // 5. 每一帧更新文本内容
+                this.currentTotalScoreText.setText(
+                    Math.round(this.currentDisplayScore1).toString(),
+                );
+            },
+            onComplete: () => {
+                this.activeScoreTween1 = null;
+                if (!visible) {
+                    this.currentTotalScoreText.setVisible(visible);
+                }
+            },
+        });
     }
 }

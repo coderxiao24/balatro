@@ -444,14 +444,15 @@ export class Game extends BaseScene {
                 this.leftBoard.updateCurrentTotalScoreText(
                     true,
                     totalScore.toString(),
+                    0,
                 );
 
-                await delay(100);
+                await delay(500);
 
+                this.leftBoard.updateCurrentTotalScoreText(false);
                 this.leftBoard.updateRoundTotalScoreText((value: string) =>
                     new BigNumber(value).plus(totalScore).toString(),
                 );
-                this.leftBoard.updateCurrentTotalScoreText(false);
 
                 this.leftBoard.updateChipsText(0);
                 this.leftBoard.updateMultText(0);
@@ -601,10 +602,13 @@ export class Game extends BaseScene {
         /** 逐个计分 */
         for (const index of isScoringIndexs) {
             const card = this.playedPlayingCards[index];
-            await card.startScoring(this.scene.key as sceneNames);
+            const startScoring = card.startScoring(
+                this.scene.key as sceneNames,
+            );
             this.leftBoard.updateChipsText((value: string) =>
                 new BigNumber(value).plus(new BigNumber(card.chips)).toString(),
             );
+            await startScoring;
             await delay(50);
         }
 
@@ -897,6 +901,12 @@ export class Game extends BaseScene {
                     const selectedCards = this.handPlayingCards.filter(
                         (item) => item.isSelected,
                     );
+                    if (!selectedCards.length) {
+                        this.leftBoard.updateHandTypeContainer(false);
+                        this.leftBoard.updateChipsText("0");
+                        this.leftBoard.updateMultText("0");
+                        return;
+                    }
                     const { handType } =
                         getHandTypeByPlayingCards(selectedCards);
                     const currentHandData = HandsDataMap[handType];
