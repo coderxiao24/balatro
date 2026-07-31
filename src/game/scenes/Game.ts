@@ -3,6 +3,7 @@ import {
     calcScale,
     delay,
     getHandTypeByPlayingCards,
+    getScore,
     preferences,
 } from "@/utils";
 import { BaseScene } from "./BaseScene";
@@ -50,6 +51,7 @@ export class Game extends BaseScene {
     handPlayingCards: PlayingCard[] = [];
 
     private bgShader: BalatroBackground;
+    private currentRoundTotalScore: BigNumber = new BigNumber(0);
     playCardsContainerWidth: number;
     playCardsContainerHeight: number;
     random: Random = new Random();
@@ -70,6 +72,8 @@ export class Game extends BaseScene {
     playedPlayCardsContainer: GameObjects.Container;
     playedPlayCardsContainerOriginalX: number;
     leftBoard: LeftBoard;
+    /** 当前盲注名称 回合外为undefined */
+    currentBlindName?: BlindNames;
 
     constructor() {
         super("Game");
@@ -120,6 +124,7 @@ export class Game extends BaseScene {
             chooseBtnClick: async () => {
                 await this.hideBlindCards();
                 this.startNextRound();
+                this.currentBlindName = BlindNames.SmallBlind;
             },
             ante: this.gameData.ante,
             stakeName: this.gameData.stake,
@@ -444,14 +449,16 @@ export class Game extends BaseScene {
                 this.leftBoard.updateCurrentTotalScoreText(
                     true,
                     totalScore.toString(),
-                    0,
                 );
-
+                0;
                 await delay(500);
 
-                this.leftBoard.updateCurrentTotalScoreText(false);
-                this.leftBoard.updateRoundTotalScoreText((value: string) =>
-                    new BigNumber(value).plus(totalScore).toString(),
+                this.leftBoard.updateCurrentTotalScoreText(false, "0", 500);
+                this.currentRoundTotalScore =
+                    this.currentRoundTotalScore.plus(totalScore);
+                this.leftBoard.updateRoundTotalScoreText(
+                    this.currentRoundTotalScore.toString(),
+                    500,
                 );
 
                 this.leftBoard.updateChipsText(0);
@@ -460,6 +467,8 @@ export class Game extends BaseScene {
 
                 // 已打出的牌离场
                 await this.playedPlayingCardsLeave();
+
+                this.checkWinOrLose();
 
                 await this.playPlayingCardHandPlayingCardUiChange(true);
 
@@ -571,6 +580,24 @@ export class Game extends BaseScene {
         );
         // 弃牌按钮结束
     }
+    /** 判断获胜或失败 todo待完善 */
+    checkWinOrLose() {
+        const targetScore = getScore(
+            this.gameData.ante,
+            this.gameData.stake,
+            this.currentBlindName,
+        );
+
+        /** 回合胜利 */
+        if (this.currentRoundTotalScore.gte(targetScore)) {
+            console.log("胜利");
+            return;
+        }
+        if (this.gameData.currentNumberOfPlays === 0) {
+            console.log("失败");
+            return;
+        }
+    }
     /**
      * 计分
      */
@@ -618,7 +645,7 @@ export class Game extends BaseScene {
             await card.toggleSelect(false);
             await delay(50);
         }
-        await delay(1000);
+        await delay(500);
     }
 
     /**

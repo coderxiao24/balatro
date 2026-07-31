@@ -669,7 +669,7 @@ export default class LeftBoard extends GameObjects.Container {
      */
     updateRoundTotalScoreText(
         valueOrFn: number | string | ((value: string) => number | string),
-        duration: number = 500,
+        duration: number = 0,
     ) {
         //  计算目标数值
         let targetValue: number;
@@ -743,7 +743,7 @@ export default class LeftBoard extends GameObjects.Container {
     updateCurrentTotalScoreText(
         visible: boolean,
         value: string = "",
-        duration: number = 500,
+        duration: number = 0,
     ) {
         if (this.activeScoreTween1 && this.activeScoreTween1.isPlaying()) {
             this.activeScoreTween1.stop();
